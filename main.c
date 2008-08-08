@@ -440,6 +440,7 @@ static void
 initialize(Chess *chess)
 {
 	unsigned long hsize;
+	char *env;
 
 	printf("%s %s by Ilari Pihlajisto\n\n", APP_NAME, APP_VERSION);
 	printf("Build date: %s\n", __DATE__);
@@ -471,18 +472,31 @@ initialize(Chess *chess)
 	} else
 		printf("Using %d threads (for perft)\n", settings.nthreads);
 
+#ifdef WINDOWS
+	strlcpy(settings.book_file, "book.bin", MAX_BUF);
+#else /* not WINDOWS */
+	if ((env = getenv("XDG_DATA_HOME"))) {
+		strlcpy(settings.book_file, env, MAX_BUF);
+		strlcat(settings.book_file, "/sloppy/book.bin", MAX_BUF);
+	} else if ((env = getenv("HOME"))) {
+		strlcpy(settings.book_file, env, MAX_BUF);
+		strlcat(settings.book_file, "/.local/share/sloppy/book.bin", MAX_BUF);
+	}
+#endif /* not WINDOWS */
+	
+
 	switch (settings.book_type) {
 	case BOOK_MEM:
 		printf("Using \"book in memory\" book mode\n");
-		if (book_exists(BOOK_FILE)) {
+		if (book_exists(settings.book_file)) {
 			printf("Loading opening book to memory...\n");
-			book_to_tree(BOOK_FILE, &chess->book);
+			book_to_tree(settings.book_file, &chess->book);
 		} else
 			printf("No opening book was found\n");
 		break;
 	case BOOK_DISK:
 		printf("Using \"book on disk\" book mode\n");
-		if (!book_exists(BOOK_FILE)) {
+		if (!book_exists(settings.book_file)) {
 			printf("No opening book was found\n");
 			settings.book_type = BOOK_OFF;
 		}
@@ -540,7 +554,26 @@ main(void)
 {
 	Chess chess;
 
-	parse_config_file("config");
+#ifdef WINDOWS
+	parse_config_file("sloppy.conf");
+#else /* not WINDOWS */
+
+	char home_config[MAX_BUF];
+	char *env;
+	if ((env = getenv("XDG_CONFIG_HOME"))) {
+		strlcpy(home_config, env, MAX_BUF);
+		strlcat(home_config, "/sloppy.conf", MAX_BUF);
+	} else if ((env = getenv("HOME"))) {
+		strlcpy(home_config, env, MAX_BUF);
+		strlcat(home_config, "/.config/sloppy.conf", MAX_BUF);
+	}
+	
+	if (env)
+		parse_config_file(home_config);
+	else
+		parse_config_file("sloppy.conf");
+#endif /* not WINDOWS */
+
 	setbuf(stdout, NULL);
 	log_date("Sloppy started at ");
 	initialize(&chess);
@@ -549,7 +582,7 @@ main(void)
 	main_loop(&chess);
 
 	if (settings.book_type == BOOK_MEM)
-		write_book(BOOK_FILE, chess.book);
+		write_book(settings.book_file, chess.book);
 	clear_avl(chess.book);
 	unload_bitbases();
 	destroy_hash();

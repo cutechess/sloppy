@@ -176,8 +176,7 @@ find_ram_pos(U64 key, AvlNode *book)
 }
 
 /* Get a list of available book moves.
-   The book can be a tree (AvlNode *book),
-   or a file (BOOK_FILE) if <book> is NULL.
+   The book can be a tree (AvlNode *book), or a file if <book> is NULL.
    Returns the combined score of all the moves if successfull.  */
 static int
 get_book_move_list(Board *board, MoveLst *move_list, AvlNode *book)
@@ -191,8 +190,8 @@ get_book_move_list(Board *board, MoveLst *move_list, AvlNode *book)
 	npos = 0;
 	tot_score = 0;
 	if (book == NULL) {
-		if ((fp = fopen(BOOK_FILE, "rb")) == NULL) {
-			my_perror("Can't open file %s", BOOK_FILE);
+		if ((fp = fopen(settings.book_file, "rb")) == NULL) {
+			my_perror("Can't open file %s", settings.book_file);
 			return -1;
 		}
 
@@ -222,7 +221,7 @@ get_book_move_list(Board *board, MoveLst *move_list, AvlNode *book)
 		undo_move(board);
 	}
 	if (book == NULL)
-		my_close(fp, BOOK_FILE);
+		my_close(fp, settings.book_file);
 	
 	return tot_score;
 }

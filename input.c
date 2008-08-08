@@ -316,7 +316,7 @@ read_input(Chess *chess)
 	Board *board;
 	char line[MAX_BUF];
 	char *cmd;
-	char *param;
+	char *param = NULL;
 	SloppyCmd *slcmd;
 
 	ASSERT(1, chess != NULL);

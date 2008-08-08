@@ -220,7 +220,7 @@ read_xb_input(Chess *chess)
 	Board *board;
 	char line[MAX_BUF];
 	char *cmd;
-	char *param;
+	char *param = NULL;
 	XbCmd *xbcmd;
 
 	ASSERT(1, chess != NULL);
@@ -302,7 +302,7 @@ read_xb_input(Chess *chess)
 		if (strchr(tok, ':') == NULL)
 			chess->max_time = (atoi(tok) * 60) * 1000;
 		else {
-			char *tok2;
+			char *tok2 = NULL;
 			tok = strtok_r(tok, ":", &tok2);
 			chess->max_time = (atoi(tok) * 60) * 1000;
 			tok = strtok_r(NULL, " ", &tok2);

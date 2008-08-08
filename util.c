@@ -50,11 +50,12 @@ Settings settings = {
 	4,		/* egbb_max_men */
 	LOAD_4MEN,	/* egbb load type */
 	0x400000,	/* egbb cache size (bytes) */
+	"",		/* book file */
 	"",		/* egbb path */
 	-1,		/* num. of threads */
 	BOOK_MEM,	/* book mode */
 	true,		/* book learning */
-	true		/* logfile */
+	false		/* logfile */
 };
 
 static int rand_seed = 1;	/* seed for the random number generator */

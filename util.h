@@ -31,6 +31,7 @@ typedef struct _Settings
 	int egbb_max_men;		/* 4 or 5 */
 	EgbbLoadType egbb_load_type;
 	size_t egbb_cache_size;		/* egbb cache size in bytes */
+	char book_file[MAX_BUF];	/* path to opening book */
 	char egbb_path[MAX_BUF];	/* path to egbb folder */
 	int nthreads;			/* max. num of threads to run */
 	BookType book_type;

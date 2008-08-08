@@ -4,8 +4,6 @@
 #include "sloppy.h"
 #include "avltree.h"
 
-#define BOOK_FILE "book.bin"
-
 
 /* Returns true if <filename> exists.  */
 extern bool book_exists(const char *filename);

@@ -66,7 +66,7 @@ test_pos(Chess *chess, const char *pos)
 {
 	char tmp_pos[MAX_BUF];
 	char *pos_item = NULL;
-	char *svptr;
+	char *svptr = NULL;
 	U32 move;
 	bool find_best;
 
