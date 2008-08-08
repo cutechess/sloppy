@@ -1,0 +1,36 @@
+# Sloppy's config file
+
+# Hash table size in megabytes
+# hash = 36
+
+# Use 5-men bitbases (on/off)
+egbb_5men = off
+
+# Endgame bitbase load type (4men/5men/smart/none/off)
+# 4men: load 3-men and 4-men bitbases to RAM
+# 5men: load 3-men, 4-men and 5-men bitbases to RAM
+# smart: load a smart selection of bitbases to RAM
+# none: load nothing to RAM
+# off: disable bitbases completely
+egbb_load_type = 4men
+
+# Endgame bitbase cache size in megabytes
+egbb_cache = 4
+
+# Endgame bitbase path
+egbb_path = bitbases
+
+# Book mode (disk/mem/off)
+bookmode = mem
+
+# Book learning (on/off)
+learn = off
+
+# Write logfile(s) (on/off)
+logfile = off
+
+# The number of threads Sloppy may use (currently for perft only).
+# Comment it out if you want Sloppy to autodetect the best value.
+# threads = 1
+
+# End of config file

@@ -1,0 +1,26 @@
+# nmake (Windows) Makefile for Sloppy
+
+# set up compiler and options
+CC = cl
+LD = link
+CFLAGS = /Zi /Ox /Gr /GL
+LDFLAGS = /DEBUG /LTCG pthreadVC2.lib
+EXECUTABLE = sloppy.exe
+
+DEBUGLEVEL = 1
+DEFS = -DDEBUG_LEVEL=$(DEBUGLEVEL)
+
+OBJS = avltree.obj bench.obj chess.obj debug.obj egbb.obj eval.obj hash.obj main.obj notation.obj \
+       game.obj input.obj makemove.obj pgn.obj book.obj magicmoves.obj movegen.obj perft.obj \
+       search.obj util.obj xboard.obj
+
+.c.obj:
+	$(CC) $(CFLAGS) /c $< $(DEFS)
+
+all: $(OBJS)
+	$(LD) $(LDFLAGS) $(OBJS) /out:$(EXECUTABLE)
+
+clean:
+	del /q $(OBJS)
+
+# End Makefile
