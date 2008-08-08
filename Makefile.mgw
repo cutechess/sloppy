@@ -23,4 +23,7 @@ all: $(OBJS)
 clean:
 	del $(OBJS)
 
+clobber: clean
+	del $(EXECUTABLE)
+
 # End Makefile

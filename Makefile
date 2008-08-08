@@ -23,4 +23,7 @@ all: $(OBJS)
 clean:
 	rm -f $(OBJS)
 
+clobber: clean
+	rm -f $(EXECUTABLE)
+
 # End Makefile
