@@ -300,6 +300,9 @@
 #include "hash.h"
 #include "egbb.h"
 
+#define CONFIG_FILE "sloppy.conf"
+#define BOOK_FILE "book.bin"
+
 
 static void
 set_config_option(const char *opt_name, const char *opt_val)
@@ -481,17 +484,21 @@ initialize(Chess *chess)
 		printf("Using %d threads (for perft)\n", settings.nthreads);
 
 #ifdef WINDOWS
-	strlcpy(settings.book_file, "book.bin", MAX_BUF);
+	strlcpy(settings.book_file, BOOK_FILE, MAX_BUF);
 #else /* not WINDOWS */
 	if ((env = getenv("XDG_DATA_HOME"))) {
 		strlcpy(settings.book_file, env, MAX_BUF);
-		strlcat(settings.book_file, "/sloppy/book.bin", MAX_BUF);
+		strlcat(settings.book_file, "/sloppy/", MAX_BUF);
+		strlcat(settings.book_file, BOOK_FILE, MAX_BUF);
 	} else if ((env = getenv("HOME"))) {
 		strlcpy(settings.book_file, env, MAX_BUF);
-		strlcat(settings.book_file, "/.local/share/sloppy/book.bin", MAX_BUF);
+		strlcat(settings.book_file, "/.local/share/sloppy/", MAX_BUF);
+		strlcat(settings.book_file, BOOK_FILE, MAX_BUF);
 	}
+	if (!env
+	||  (!file_exists(settings.book_file) && file_exists(BOOK_FILE)))
+		strlcpy(settings.book_file, BOOK_FILE, MAX_BUF);
 #endif /* not WINDOWS */
-	
 
 	switch (settings.book_type) {
 	case BOOK_MEM:
@@ -563,23 +570,25 @@ main(void)
 	Chess chess;
 
 #ifdef WINDOWS
-	parse_config_file("sloppy.conf");
+	parse_config_file(CONFIG_FILE);
 #else /* not WINDOWS */
 
 	char home_config[MAX_BUF];
 	char *env;
 	if ((env = getenv("XDG_CONFIG_HOME"))) {
 		strlcpy(home_config, env, MAX_BUF);
-		strlcat(home_config, "/sloppy.conf", MAX_BUF);
+		strlcat(home_config, "/", MAX_BUF);
+		strlcat(home_config, CONFIG_FILE, MAX_BUF);
 	} else if ((env = getenv("HOME"))) {
 		strlcpy(home_config, env, MAX_BUF);
-		strlcat(home_config, "/.config/sloppy.conf", MAX_BUF);
+		strlcat(home_config, "/.config/", MAX_BUF);
+		strlcat(home_config, CONFIG_FILE, MAX_BUF);
 	}
 	
-	if (env)
+	if (env && (file_exists(home_config) || !file_exists(CONFIG_FILE)))
 		parse_config_file(home_config);
 	else
-		parse_config_file("sloppy.conf");
+		parse_config_file(CONFIG_FILE);
 #endif /* not WINDOWS */
 
 	setbuf(stdout, NULL);
