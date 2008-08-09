@@ -1,7 +1,7 @@
 # Sloppy's config file
 
 # Hash table size in megabytes
-# hash = 36
+hash = 36
 
 # Use 5-men bitbases (on/off)
 egbb_5men = off

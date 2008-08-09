@@ -346,6 +346,7 @@ set_config_option(const char *opt_name, const char *opt_val)
 		else
 			my_error("config: invalid book mode: %s", opt_val);
 	} else if (strcmp(opt_name, "egbb_path") == 0) {
+		printf("BB: %s\n", opt_val);
 		int len = strlen(opt_val);
 		if (len > 0) {
 			strlcpy(settings.egbb_path, opt_val, MAX_BUF);
@@ -384,6 +385,7 @@ parse_config_file(const char *filename)
 	char opt_name[MAX_BUF];
 	char opt_val[MAX_BUF];
 	char *strptr;
+	bool in_quotes = false;
 	FILE *fp;
 
 	if ((fp = fopen(filename, "r")) == NULL) {
@@ -393,32 +395,36 @@ parse_config_file(const char *filename)
 
 	strptr = opt_name;
 	while ((c = fgetc(fp)) != EOF) {
-		switch (c) {
-		case '#': /* comment line */
-			clear_buf(fp);
-			break;
-		case ' ': case '\t': case '\r':
-			break;
-		case '\n': /* options are separated by line breaks */
+		if (!in_quotes) {
+			if (c == '#') { /* comment line */
+				clear_buf(fp);
+				continue;
+			} else if (c == ' ' || c == '\t' || c == '\r') {
+				continue;
+			} else if (c == '=') {
+				if (len > 0)
+					*strptr = '\0';
+				else {
+					my_error("Error in config file");
+					my_close(fp, filename);
+					return;
+				}
+				len = 0;
+				strptr = opt_val;
+				continue;
+			}
+		}
+		if (c == '\"') {
+			in_quotes = !in_quotes;
+		} else if (c == '\n') { /* separate options by line breaks */
+			in_quotes = false;
 			if (len > 0) {
 				*strptr = '\0';
 				set_config_option(opt_name, opt_val);
 			}
 			len = 0;
 			strptr = opt_name;
-			break;
-		case '=':
-			if (len > 0)
-				*strptr = '\0';
-			else {
-				my_error("Error in config file");
-				my_close(fp, filename);
-				return;
-			}
-			len = 0;
-			strptr = opt_val;
-			break;
-		default:
+		} else {
 			if (len >= MAX_BUF)
 				break;
 			len++;
@@ -428,7 +434,6 @@ parse_config_file(const char *filename)
 				*strptr = '\0';
 				my_error("Config string too long");
 			}
-			break;
 		}
 	}
 
