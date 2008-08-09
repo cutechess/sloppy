@@ -171,7 +171,7 @@ pgn_to_tree(const char *filename, AvlNode **tree)
 		settings.book_type = BOOK_MEM;
 		printf("Changed book mode to \"book in memory\"\n");
 	}
-	if (*tree == NULL && book_exists(settings.book_file)) {
+	if (*tree == NULL && file_exists(settings.book_file)) {
 		printf("Loading opening book to memory...\n");
 		book_to_tree(settings.book_file, tree);
 	} else if (*tree == NULL)

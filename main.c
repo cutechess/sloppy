@@ -346,7 +346,6 @@ set_config_option(const char *opt_name, const char *opt_val)
 		else
 			my_error("config: invalid book mode: %s", opt_val);
 	} else if (strcmp(opt_name, "egbb_path") == 0) {
-		printf("BB: %s\n", opt_val);
 		int len = strlen(opt_val);
 		if (len > 0) {
 			strlcpy(settings.egbb_path, opt_val, MAX_BUF);
@@ -493,7 +492,7 @@ initialize(Chess *chess)
 	switch (settings.book_type) {
 	case BOOK_MEM:
 		printf("Using \"book in memory\" book mode\n");
-		if (book_exists(settings.book_file)) {
+		if (file_exists(settings.book_file)) {
 			printf("Loading opening book to memory...\n");
 			book_to_tree(settings.book_file, &chess->book);
 		} else
@@ -501,7 +500,7 @@ initialize(Chess *chess)
 		break;
 	case BOOK_DISK:
 		printf("Using \"book on disk\" book mode\n");
-		if (!book_exists(settings.book_file)) {
+		if (!file_exists(settings.book_file)) {
 			printf("No opening book was found\n");
 			settings.book_type = BOOK_OFF;
 		}

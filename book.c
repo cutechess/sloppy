@@ -43,7 +43,7 @@ static bool book_modified = false;
 
 /* Returns true if <filename> exists.  */
 bool
-book_exists(const char *filename)
+file_exists(const char *filename)
 {
 	FILE *fp;
 	if ((fp = fopen(filename, "rb")) == NULL)

@@ -6,7 +6,7 @@
 
 
 /* Returns true if <filename> exists.  */
-extern bool book_exists(const char *filename);
+extern bool file_exists(const char *filename);
 
 /* Read an opening book file and store its positions in an AVL tree.
    Returns 0 if successfull.  */
