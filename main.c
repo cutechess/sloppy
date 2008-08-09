@@ -577,11 +577,11 @@ main(void)
 	char *env;
 	if ((env = getenv("XDG_CONFIG_HOME"))) {
 		strlcpy(home_config, env, MAX_BUF);
-		strlcat(home_config, "/", MAX_BUF);
+		strlcat(home_config, "/sloppy/", MAX_BUF);
 		strlcat(home_config, CONFIG_FILE, MAX_BUF);
 	} else if ((env = getenv("HOME"))) {
 		strlcpy(home_config, env, MAX_BUF);
-		strlcat(home_config, "/.config/", MAX_BUF);
+		strlcat(home_config, "/.config/sloppy/", MAX_BUF);
 		strlcat(home_config, CONFIG_FILE, MAX_BUF);
 	}
 	
