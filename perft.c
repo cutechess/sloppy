@@ -356,12 +356,8 @@ perft_root(Board *board, int depth, bool divide)
 		/* Single threaded perft */
 		tmp_nnodes = perft(board, depth - 1, hash);
 		nnodes += tmp_nnodes;
-		if (divide) {
-			char str_move[MAX_BUF];
-
-			move_to_san(str_move, board, move);
+		if (divide)
 			printf("%s %" PRIu64 "\n", str_move, tmp_nnodes);
-		}
 #endif /* not USE_THREADS */
 		undo_move(board);
 	}
