@@ -322,15 +322,16 @@ read_input(Chess *chess)
 	ASSERT(1, chess != NULL);
 
 	board = &chess->board;
-	
+
 	if (ninput <= 0 || strlen(last_input) == 0) {
-		/* Read input.  */
 		if (chess->protocol == PROTO_NONE) {
+			int nmoves = board->nmoves / 2 + 1;
 			if (board->color == WHITE)
-				printf("White: ");
+				printf("White(%d): ", nmoves);
 			else
-				printf("Black: ");
+				printf("Black(%d): ", nmoves);
 		}		
+		/* Read input.  */
 		if (fgetline(last_input, MAX_BUF, stdin) < 1)
 			return 0;
 		ninput++;
