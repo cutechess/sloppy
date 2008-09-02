@@ -266,8 +266,8 @@ read_xb_input(Chess *chess)
 		       " sigint=0"
 		       " sigterm=0"
 		       " analyze=1"
-		       " done=1"
-		       " name=1\n", APP_NAME, APP_VERSION);
+		       " name=1"
+		       " done=1\n", APP_NAME, APP_VERSION);
 		break;
 	case XBID_ACCEPTED:
 		break;
