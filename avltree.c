@@ -177,7 +177,7 @@ AvlNode
 				node = double_rotate_with_right(node);
 		}
 	}
-	/* The position is in the tree already, so we do nothing.  */
+
 	node->height = max_val(avl_height(node->left), avl_height(node->right)) + 1;
 
 	return node;
