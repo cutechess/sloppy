@@ -1,7 +1,7 @@
 #ifndef BENCH_H
 #define BENCH_H
 
-#include "chess.h"
+//typedef struct _Chess Chess;
 
 
 /* Run a test position (eg. from WAC, ECM or WCSAC).

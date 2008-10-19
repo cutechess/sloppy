@@ -2,7 +2,9 @@
 #define CHESS_H
 
 #include "sloppy.h"
-#include "avltree.h"
+
+struct _AvlNode;
+
 
 /* Absolute maximum search depth. The user/protocol can also set another max.
    depth, which can't of course be greater than this limit.  */
@@ -60,7 +62,7 @@ typedef struct _Chess
 	Board board;		/* board for the game Sloppy is playing */
 	Board sboard;		/* board for the search */
 	SearchData sd;		/* search statistics */
-	AvlNode *book;		/* opening book */
+	struct _AvlNode *book;	/* opening book */
 	Protocol protocol;	/* chess protocol */
 	int cpu_color;		/* Sloppy's side (WHITE or BLACK) */
 	int max_depth;		/* maximum search depth */
