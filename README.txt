@@ -41,7 +41,7 @@ INTERFACE, COMMAND LINE OPTIONS
 CONFIGURATION
 
    Sloppy ignores all command line arguments. Instead, you can configure Sloppy
-   by editing the config file ("config").
+   by editing the config file ("sloppy.conf").
 
 
 ASCII INTERFACE COMMANDS
