@@ -346,7 +346,7 @@ perft_root(Board *board, int depth, bool divide)
 	for (i = 0; i < move_list.nmoves; i++) {
 		U32 move = move_list.move[i];
 
-		move_to_san(str_move, board, move);
+		move_to_str(move, str_move);
 		make_move(board, move);
 		
 #ifdef USE_THREADS
