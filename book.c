@@ -94,9 +94,13 @@ book_to_tree(const char *filename, AvlNode **tree)
 
 	npos = get_pos_count(fp);
 	for (i = 0; i < npos; i++) {
-		fread(&key, sizeof(U64), 1, fp);
-		fread(&games, sizeof(U16), 1, fp);
-		fread(&wins, sizeof(U16), 1, fp);
+		if (fread(&key, sizeof(U64), 1, fp) != 1
+		||  fread(&games, sizeof(U16), 1, fp) != 1
+		||  fread(&wins, sizeof(U16), 1, fp) != 1) {
+			my_close(fp, filename);
+			my_perror("Can't read file %s", filename);
+			return -1;
+		}
 		
 		/* Make sure the data is in the right endian format.  */
 		key = fix_endian_u64(key);
@@ -140,9 +144,12 @@ find_disk_pos(FILE *fp, U64 key, int npos)
 	while (right >= left) {
 		mid = (left + right) / 2;
 		fseek(fp, BOOK_NODE_SIZE * mid, SEEK_SET);
-		fread(&tmp_key, sizeof(U64), 1, fp);
-		fread(&games, sizeof(U16), 1, fp);
-		fread(&wins, sizeof(U16), 1, fp);
+		if (fread(&tmp_key, sizeof(U64), 1, fp) != 1
+		||  fread(&games, sizeof(U16), 1, fp) != 1
+		||  fread(&wins, sizeof(U16), 1, fp) != 1) {
+			my_perror("Can't read book file");
+			return VAL_NONE;
+		}
 		
 		/* Make sure the data is in the right endian format.  */
 		tmp_key = fix_endian_u64(tmp_key);
@@ -163,7 +170,7 @@ find_disk_pos(FILE *fp, U64 key, int npos)
 /* Search the binary tree <book> to find the position with key <key>.
    If the position is found, return its score. Else return VAL_NONE.  */
 static int
-find_ram_pos(U64 key, AvlNode *book)
+find_ram_pos(U64 key, const AvlNode *book)
 {
 	AvlNode *n;
 	
@@ -179,7 +186,7 @@ find_ram_pos(U64 key, AvlNode *book)
    The book can be a tree (AvlNode *book), or a file if <book> is NULL.
    Returns the combined score of all the moves if successfull.  */
 static int
-get_book_move_list(Board *board, MoveLst *move_list, AvlNode *book)
+get_book_move_list(Board *board, MoveLst *move_list, const AvlNode *book)
 {
 	int i, npos, tot_score;
 	FILE *fp = NULL;
@@ -228,7 +235,7 @@ get_book_move_list(Board *board, MoveLst *move_list, AvlNode *book)
 
 /* Displays a list of the available book moves.  */
 void
-print_book(Board *board, AvlNode *book)
+print_book(Board *board, const AvlNode *book)
 {
 	int i;
 	int nmoves;
@@ -302,7 +309,7 @@ print_book_x(Board *board, MoveLst *move_list, int tot_score)
    Returns NULLMOVE if no book moves with a score above 0 are found.
    If <show_book> is true, a list of available moves is displayed.  */
 U32
-get_book_move(Board *board, bool show_book, AvlNode *book)
+get_book_move(Board *board, bool show_book, const AvlNode *book)
 {
 	int i;
 	int tot_score;
@@ -394,7 +401,7 @@ write_book(const char *filename, AvlNode *tree)
 /* Store the positions of a played game (stored in <board>) in an AVL tree.
    <winner> is either WHITE or BLACK.  */
 void
-book_learn(Board *board, int winner, AvlNode **tree)
+book_learn(const Board *board, int winner, AvlNode **tree)
 {
 	int i;
 	

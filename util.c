@@ -282,7 +282,7 @@ get_nproc(void)
 
 /* Make <dest> a copy of <src>.  */
 void
-copy_board(Board *dest, Board *src)
+copy_board(Board *dest, const Board *src)
 {
 	*dest = *src;
 	dest->posp = &dest->pos[dest->nmoves];
@@ -290,7 +290,7 @@ copy_board(Board *dest, Board *src)
 
 /* Display an ASCII version of the board.  */
 void
-print_board(Board *board)
+print_board(const Board *board)
 {
 	char c;
 	char fen[MAX_BUF];

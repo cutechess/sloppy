@@ -4,7 +4,7 @@
 struct _Chess;
 
 
-extern CmdType get_xboard_cmd_type(struct _Chess *chess);
+extern CmdType get_xboard_cmd_type(const struct _Chess *chess);
 
 /* Read an Xboard command from last_input and execute it.
 

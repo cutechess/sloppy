@@ -18,7 +18,7 @@ extern void main_loop(struct _Chess *chess);
 extern void log_game(const char *result, const char *wname, const char *bname);
 
 /* Updates the log file with details of the last move.  */
-extern void update_game_log(Board *board, const char *str_move, int score, bool book_used);
+extern void update_game_log(const Board *board, const char *str_move, int score, bool book_used);
 
 /* Starts a new game in position <fen>.  */
 extern void new_game(struct _Chess *chess, const char *fen, int new_cpu_color);

@@ -100,7 +100,7 @@ init_perft_hash(PerftHash *hash)
 }
 
 static U64
-probe_perft_hash(U64 key, int depth, PerftHash *hash)
+probe_perft_hash(U64 key, int depth, const PerftHash *hash)
 {
 	U64 nnodes = 0;
 
@@ -256,7 +256,7 @@ init_threads(pthread_t *pthread)
 }
 
 static void
-new_request(Board *board, int depth, char *str_move)
+new_request(const Board *board, int depth, const char *str_move)
 {
 	ASSERT(1, board != NULL);
 	ASSERT(1, str_move != NULL);

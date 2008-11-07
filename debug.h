@@ -21,11 +21,11 @@
 extern bool val_is_ok(int val);
 
 /* Returns true if <board> isn't corrupted.  */
-extern bool board_is_ok(Board *board);
+extern bool board_is_ok(const Board *board);
 
 /* Compares two chess boards to each other.
    Returns 0 if they have the same data.  */
-extern int board_cmp(Board *board1, Board *board2);
+extern int board_cmp(const Board *board1, const Board *board2);
 
 /* Print a 64-bit unsigned integer in binary (bitmask) form.  */
 extern void print_bitmask_64(U64 mask);

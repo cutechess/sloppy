@@ -90,15 +90,13 @@ static SloppyCmd slcmds[] =
 
 
 static SloppyCmd
-*get_slcmd(Chess *chess)
+*get_slcmd(void)
 {
 	int i;
 	char *cmd;
 	char *param;
 	char line[MAX_BUF];
 	
-	ASSERT(1, chess != NULL);
-
 	strlcpy(line, last_input, MAX_BUF);
 	cmd = strtok_r(line, " ", &param);
 	
@@ -111,7 +109,7 @@ static SloppyCmd
 }
 
 static CmdType
-get_sloppy_cmd_type(Chess *chess)
+get_sloppy_cmd_type(const Chess *chess)
 {
 	SloppyCmd *slcmd;
 	
@@ -120,7 +118,7 @@ get_sloppy_cmd_type(Chess *chess)
 	if (chess->analyze)
 		return get_xboard_cmd_type(chess);
 
-	slcmd = get_slcmd(chess);
+	slcmd = get_slcmd();
 	if (slcmd == NULL)
 		return get_xboard_cmd_type(chess);
 
@@ -343,7 +341,7 @@ read_input(Chess *chess)
 		return read_xb_input(chess);
 
 	cmd = strtok_r(line, " ", &param);
-	slcmd = get_slcmd(chess);
+	slcmd = get_slcmd();
 	/* If the command isn't any of Sloppy's own commands, we'll
 	   try it as an Xboard command.  */
 	if (slcmd == NULL)

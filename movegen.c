@@ -300,11 +300,11 @@ init_movegen(void)
    needed only for debugging, because Sloppy encodes an IS_CHECK bit
    in the move structure.  */
 bool
-board_is_check(Board *board)
+board_is_check(const Board *board)
 {
 	int color;
 	int king_sq;
-	U64 *op_pcs;
+	const U64 *op_pcs;
 
 	ASSERT(1, board != NULL);
 
@@ -324,7 +324,7 @@ board_is_check(Board *board)
 /* Get a check threat mask, or a mask of squares where the opposing king
    can't move without being checked.  */
 static U64
-get_threat_mask(Board *board, int color)
+get_threat_mask(const Board *board, int color)
 {
 	int sq;
 	U64 mask;
@@ -385,7 +385,7 @@ get_threat_mask(Board *board, int color)
 
 /* Returns true if <move> checks the opposing king.  */
 static bool
-move_is_check(Board *board, U32 move, MoveData *md)
+move_is_check(const Board *board, U32 move, MoveData *md)
 {
 	int color;
 	int pc;
@@ -513,7 +513,7 @@ simple_move(int pc, int from, int to, int prom)
 /* Form a new move and add it to a move list.  */
 #define CHECK_BIT 04000000000
 static void
-add_move(Board *board, MoveData *md, MoveLst *move_list)
+add_move(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	const unsigned castle_bits[2] = { BIT(27U), BIT(28U) | BIT(27U) };
 	int pc;
@@ -547,7 +547,7 @@ add_move(Board *board, MoveData *md, MoveLst *move_list)
    move list. If the capture is also a promotion then all the possible
    promotions will be added. */
 static void
-add_pawn_capt(Board *board, MoveData *md, MoveLst *move_list)
+add_pawn_capt(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	int color;
 	int king_sq;
@@ -585,7 +585,7 @@ add_pawn_capt(Board *board, MoveData *md, MoveLst *move_list)
 
 /* Generate pawn captures.  */
 static void
-gen_pawn_capts(Board *board, MoveData *md, MoveLst *move_list)
+gen_pawn_capts(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	int color;
 	int side;	/* capture side, 0 = left, 1 = right */
@@ -628,7 +628,7 @@ gen_pawn_capts(Board *board, MoveData *md, MoveLst *move_list)
    move list. If the move is a promotion then all the possible
    promotions will be added. */
 static void
-add_pawn_move(Board *board, MoveData *md, MoveLst *move_list)
+add_pawn_move(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	int color;
 	int king_sq;
@@ -655,7 +655,7 @@ add_pawn_move(Board *board, MoveData *md, MoveLst *move_list)
 
 /* Generate pawn moves (non-captures).  */
 static void
-gen_pawn_moves(Board *board, MoveData *md, MoveLst *move_list)
+gen_pawn_moves(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	int color;
 	int sign;
@@ -694,7 +694,7 @@ gen_pawn_moves(Board *board, MoveData *md, MoveLst *move_list)
 
 /* Generate knight moves.  */
 static void
-gen_knight_moves(Board *board, MoveData *md, MoveLst *move_list)
+gen_knight_moves(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	int color;
 	U64 mask;
@@ -725,7 +725,7 @@ gen_knight_moves(Board *board, MoveData *md, MoveLst *move_list)
 
 /* Generate bishop moves.  */
 static void
-gen_bishop_moves(Board *board, MoveData *md, MoveLst *move_list)
+gen_bishop_moves(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	int color;
 	int king_sq;
@@ -760,7 +760,7 @@ gen_bishop_moves(Board *board, MoveData *md, MoveLst *move_list)
 
 /* Generate rook moves.  */
 static void
-gen_rook_moves(Board *board, MoveData *md, MoveLst *move_list)
+gen_rook_moves(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	int color;
 	int king_sq;
@@ -795,7 +795,7 @@ gen_rook_moves(Board *board, MoveData *md, MoveLst *move_list)
 
 /* Generate king captures.  */
 static void
-gen_king_capts(Board *board, MoveData *md, MoveLst *move_list)
+gen_king_capts(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	U64 attacks;
 	U64 target;
@@ -820,7 +820,7 @@ gen_king_capts(Board *board, MoveData *md, MoveLst *move_list)
 
 /* Generate king moves (non-captures).  */
 static void
-gen_king_moves(Board *board, MoveData *md, MoveLst *move_list)
+gen_king_moves(const Board *board, MoveData *md, MoveLst *move_list)
 {
 	int color;
 	int i;
@@ -889,7 +889,7 @@ gen_king_moves(Board *board, MoveData *md, MoveLst *move_list)
    <color> and <pinned_color> may or may not be the same. If they're not, then
    the pieces aren't really pinned, but they can give a discovered check.  */
 static U64
-get_pins(Board *board, int color, int pinned_color)
+get_pins(const Board *board, int color, int pinned_color)
 {
 	int king_sq;
 	U64 pinners;
@@ -933,10 +933,10 @@ get_pins(Board *board, int color, int pinned_color)
    the other squares where pieces (not the king) can move to
    evade the check.  */
 static U64
-get_check_mask(Board *board)
+get_check_mask(const Board *board)
 {
 	int king_sq;
-	U64 *op_pcs;
+	const U64 *op_pcs;
 	U64 sliders;
 	U64 check_mask;
 
@@ -963,7 +963,7 @@ get_check_mask(Board *board)
 
 /* Generate some bitmasks for move generation.  */
 static void
-gen_movegen_masks(Board *board, MoveData *md)
+gen_movegen_masks(const Board *board, MoveData *md)
 {
 	int color;
 	int king_sq;
@@ -982,7 +982,7 @@ gen_movegen_masks(Board *board, MoveData *md)
 
 /* Generate moves that are played in the quiescence search.  */
 void
-gen_qs_moves(Board *board, MoveLst *move_list)
+gen_qs_moves(const Board *board, MoveLst *move_list)
 {
 	int color;
 	MoveData md;
@@ -1006,7 +1006,7 @@ gen_qs_moves(Board *board, MoveLst *move_list)
 
 /* Generate all legal moves.  */
 void
-gen_moves(Board *board, MoveLst *move_list)
+gen_moves(const Board *board, MoveLst *move_list)
 {
 	int color;
 	MoveData md;

@@ -25,16 +25,16 @@ extern void init_eval(void);
 /* The Static Exchange Evaluator.
    It returns the likely outcome (or evaluation) of a piece exchange
    (or a series of them) cause by <move> (not necessarily a capture).  */
-extern int see(Board *board, U32 move, int color);
+extern int see(const Board *board, U32 move, int color);
 
 /* If true, the moving piece is a passed pawn.  */
-extern bool is_passer_move(Board *board, U32 move);
+extern bool is_passer_move(const Board *board, U32 move);
 
 /* Compute the game phase.  */
-extern int get_phase(Board *board);
+extern int get_phase(const Board *board);
 
 /* Returns the static evaluation of the board.  */
-extern int eval(Board *board);
+extern int eval(const Board *board);
 
 #endif /* EVAL_H */
 

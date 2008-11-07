@@ -69,7 +69,7 @@ init_chess(Chess *chess)
 
 /* Print some details about the last search.  */
 void
-print_search_data(SearchData *sd, int t_elapsed)
+print_search_data(const SearchData *sd, int t_elapsed)
 {
 	double hhit_rate;
 	U64 nnodes;

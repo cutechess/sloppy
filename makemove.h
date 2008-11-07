@@ -14,7 +14,7 @@ extern void undo_nullmove(Board *board);
 
 /* Returns the number of times the current position has been reached
    in the game.  */
-extern int get_nrepeats(Board *board, int max_repeats);
+extern int get_nrepeats(const Board *board, int max_repeats);
 
 #endif /* MAKEMOVE_H */
 
