@@ -94,9 +94,13 @@ book_to_tree(const char *filename, AvlNode **tree)
 
 	npos = get_pos_count(fp);
 	for (i = 0; i < npos; i++) {
-		fread(&key, sizeof(U64), 1, fp);
-		fread(&games, sizeof(U16), 1, fp);
-		fread(&wins, sizeof(U16), 1, fp);
+		if (fread(&key, sizeof(U64), 1, fp) != 1
+		||  fread(&games, sizeof(U16), 1, fp) != 1
+		||  fread(&wins, sizeof(U16), 1, fp) != 1) {
+			my_close(fp, filename);
+			my_perror("Can't read file %s", filename);
+			return -1;
+		}
 		
 		/* Make sure the data is in the right endian format.  */
 		key = fix_endian_u64(key);
@@ -140,9 +144,12 @@ find_disk_pos(FILE *fp, U64 key, int npos)
 	while (right >= left) {
 		mid = (left + right) / 2;
 		fseek(fp, BOOK_NODE_SIZE * mid, SEEK_SET);
-		fread(&tmp_key, sizeof(U64), 1, fp);
-		fread(&games, sizeof(U16), 1, fp);
-		fread(&wins, sizeof(U16), 1, fp);
+		if (fread(&tmp_key, sizeof(U64), 1, fp) != 1
+		||  fread(&games, sizeof(U16), 1, fp) != 1
+		||  fread(&wins, sizeof(U16), 1, fp) != 1) {
+			my_perror("Can't read book file");
+			return VAL_NONE;
+		}
 		
 		/* Make sure the data is in the right endian format.  */
 		tmp_key = fix_endian_u64(tmp_key);
