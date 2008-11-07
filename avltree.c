@@ -34,9 +34,12 @@ write_avl(const AvlNode *node, FILE *fp)
 		U16 wins = fix_endian_u16(node->wins);
 		
 		write_avl(node->left, fp);
-		fwrite(&key, sizeof(U64), 1, fp);
-		fwrite(&games, sizeof(U16), 1, fp);
-		fwrite(&wins, sizeof(U16), 1, fp);
+		if (fwrite(&key, sizeof(U64), 1, fp) != 1
+		||  fwrite(&games, sizeof(U16), 1, fp) != 1
+		||  fwrite(&wins, sizeof(U16), 1, fp) != 1) {
+			my_perror("Can't write to file");
+			return;
+		}
 		write_avl(node->right, fp);
 	}
 }
