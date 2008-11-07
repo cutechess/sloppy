@@ -84,7 +84,7 @@ extern void init_search_data(SearchData *sd);
 extern void init_chess(Chess *chess);
 
 /* Print some details about the last search.  */
-extern void print_search_data(SearchData *sd, int t_elapsed);
+extern void print_search_data(const SearchData *sd, int t_elapsed);
 
 #endif /* CHESS_H */
 

@@ -469,7 +469,7 @@ init_eval_log(void)
 }
 
 static int
-get_score(Board *board, int op, int eg)
+get_score(const Board *board, int op, int eg)
 {
 	int phase;
 	
@@ -482,7 +482,7 @@ get_score(Board *board, int op, int eg)
 }
 
 static void
-print_val(Board *board, LogCode code)
+print_val(const Board *board, LogCode code)
 {
 	int white[2];
 	int black[2];
@@ -530,7 +530,7 @@ finish_log(void)
 }
 
 static void
-print_eval_log(Board *board)
+print_eval_log(const Board *board)
 {
 	int phase;
 	
@@ -588,7 +588,7 @@ print_eval_log(Board *board)
    (or a series of them) cause by <move> (not necessarily a capture).  */
 #define MAX_CAPTURES 32
 int
-see(Board *board, U32 move, int color)
+see(const Board *board, U32 move, int color)
 {
 	int from;
 	int to;
@@ -603,8 +603,8 @@ see(Board *board, U32 move, int color)
 	U64 mask;		/* all pieces from both sides */
 	U64 bq;			/* bishops and queens from both sides */
 	U64 rq;			/* rooks and queens from both sides */
-	U64 *whites;		/* pointer to the mask of all white pieces */
-	U64 *blacks;		/* pointer to the mask of all black pieces */
+	const U64 *whites;	/* pointer to the mask of all white pieces */
+	const U64 *blacks;	/* pointer to the mask of all black pieces */
 	U64 from_mask = 0;	/* mask of the attacker's <from> square */
 	
 	ASSERT(2, board != NULL);
@@ -729,7 +729,7 @@ get_distance(int sq1, int sq2)
 
 /* If true, the moving piece is a passed pawn.  */
 bool
-is_passer_move(Board *board, U32 move)
+is_passer_move(const Board *board, U32 move)
 {
 	int color;
 
@@ -757,7 +757,7 @@ quad(int y_min, int y_max, int x)
 }
 
 static bool
-unstoppable_passer(Board *board, int color, int sq)
+unstoppable_passer(const Board *board, int color, int sq)
 {
 
 	int prom_sq;
@@ -786,7 +786,7 @@ unstoppable_passer(Board *board, int color, int sq)
 
 /* Return true if the opposing king can't catch the pawn.  */
 static bool
-king_passer(Board *board, int color, int pawn_sq)
+king_passer(const Board *board, int color, int pawn_sq)
 {
 
 	int king_sq;
@@ -809,7 +809,7 @@ king_passer(Board *board, int color, int pawn_sq)
 
 /* Returns true if the pawn can advance safely.  */
 static bool
-free_passer(Board *board, int color, int from)
+free_passer(const Board *board, int color, int from)
 {
 
 	int to;
@@ -837,7 +837,7 @@ free_passer(Board *board, int color, int from)
 
 /* Evaluate a passed pawn.  */
 static void
-passer_eval(Board *board, int color, int sq, EvalData *ed)
+passer_eval(const Board *board, int color, int sq, EvalData *ed)
 {
 	int delta;
 	int rank = SQ_RANK(sq);
@@ -883,7 +883,7 @@ passer_eval(Board *board, int color, int sq, EvalData *ed)
 }
 
 static bool
-is_backward(Board *board, int color, int sq)
+is_backward(const Board *board, int color, int sq)
 {
 	U64 my_pawns;
 	U64 op_pawns;
@@ -918,7 +918,7 @@ is_backward(Board *board, int color, int sq)
 }
 
 static bool
-is_candidate(Board *board, int color, int sq)
+is_candidate(const Board *board, int color, int sq)
 {
 	U64 my_pawns;
 	U64 op_pawns;
@@ -939,11 +939,11 @@ is_candidate(Board *board, int color, int sq)
 }
 
 static void
-pawn_eval(Board *board, int color, int sq, EvalData *ed, int *hash_op, int *hash_eg, U64 *passers)
+pawn_eval(const Board *board, int color, int sq, EvalData *ed, int *hash_op, int *hash_eg, U64 *passers)
 {
 	bool open = false;
-	U64 *my_pcs;
-	U64 *oppn_pcs;
+	const U64 *my_pcs;
+	const U64 *oppn_pcs;
 
 	ASSERT(2, board != NULL);
 	ASSERT(2, ed != NULL);
@@ -1008,7 +1008,7 @@ pawn_eval(Board *board, int color, int sq, EvalData *ed, int *hash_op, int *hash
 }
 
 static void
-knight_eval(Board *board, int color, int sq, EvalData *ed)
+knight_eval(const Board *board, int color, int sq, EvalData *ed)
 {
 	int mob;
 	int *op;
@@ -1061,7 +1061,7 @@ knight_eval(Board *board, int color, int sq, EvalData *ed)
 }
 
 static int
-trapped_bishop(Board *board, int color, int sq)
+trapped_bishop(const Board *board, int color, int sq)
 {
 	const U64 btrap_mask = 0x7E7E7E7E7E7E7E7E;
 	U64 op_pawns;
@@ -1085,7 +1085,7 @@ trapped_bishop(Board *board, int color, int sq)
 }
 
 static bool
-blocked_bishop(Board *board, int color, int sq)
+blocked_bishop(const Board *board, int color, int sq)
 {
 	ASSERT(2, board != NULL);
 
@@ -1106,7 +1106,7 @@ blocked_bishop(Board *board, int color, int sq)
 }
 
 static void
-bishop_eval(Board *board, int color, int sq, EvalData *ed)
+bishop_eval(const Board *board, int color, int sq, EvalData *ed)
 {
 	int mob;
 	int tb_score;
@@ -1148,7 +1148,7 @@ bishop_eval(Board *board, int color, int sq, EvalData *ed)
 }
 
 static void
-rook_file_bonus(Board *board, int color, int sq, EvalData *ed)
+rook_file_bonus(const Board *board, int color, int sq, EvalData *ed)
 {
 	int file;
 	int king_file;
@@ -1204,7 +1204,7 @@ rook_file_bonus(Board *board, int color, int sq, EvalData *ed)
 }
 
 static bool
-blocked_rook(Board *board, int color, int sq)
+blocked_rook(const Board *board, int color, int sq)
 {
 	int king_sq;
 	
@@ -1226,7 +1226,7 @@ blocked_rook(Board *board, int color, int sq)
 }
 
 static void
-rook_eval(Board *board, int color, int sq, EvalData *ed)
+rook_eval(const Board *board, int color, int sq, EvalData *ed)
 {
 	int mob;
 	int *op;
@@ -1271,7 +1271,7 @@ rook_eval(Board *board, int color, int sq, EvalData *ed)
 }
 
 static void
-queen_eval(Board *board, int color, int sq, EvalData *ed)
+queen_eval(const Board *board, int color, int sq, EvalData *ed)
 {
 	int dist_file;
 	int dist_rank;
@@ -1314,7 +1314,7 @@ queen_eval(Board *board, int color, int sq, EvalData *ed)
 }
 
 static void
-pawn_shelter_eval(Board *board, int color, EvalData *ed)
+pawn_shelter_eval(const Board *board, int color, EvalData *ed)
 {
 	U64 mask;
 	U64 my_pawns;
@@ -1362,7 +1362,7 @@ pawn_shelter_eval(Board *board, int color, EvalData *ed)
 }
 
 static void
-pawn_storm_eval(Board *board, int color, EvalData *ed)
+pawn_storm_eval(const Board *board, int color, EvalData *ed)
 {
 	U64 mask;
 	static const int pawn_storm[] = { 0, 0, 0, -10, -30, -60, 0, 0 };
@@ -1383,7 +1383,7 @@ pawn_storm_eval(Board *board, int color, EvalData *ed)
 }
 
 static void
-king_eval(Board *board, int color, int sq, EvalData *ed)
+king_eval(const Board *board, int color, int sq, EvalData *ed)
 {
 	ASSERT(2, board != NULL);
 	ASSERT(2, ed != NULL);
@@ -1400,14 +1400,14 @@ king_eval(Board *board, int color, int sq, EvalData *ed)
 #define FWD_LEFT(mask, color) ((color) == WHITE ? (mask) >> 9 : (mask) << 7)
 #define FWD_RIGHT(mask, color) ((color) == WHITE ? (mask) >> 7 : (mask) << 9)
 static U64
-get_attack_mask(Board *board, int color, int *sum)
+get_attack_mask(const Board *board, int color, int *sum)
 {
 	int sq;		/* attacked square */
 	U64 mask;	/* attacking pieces of one piece type */
 	U64 attacks;	/* all attacked squares */
 	U64 tmp;	/* squares attacked by one piece */
 	U64 ka;		/* king-attack mask */
-	U64 *my_pcs;
+	const U64 *my_pcs;
 	
 	ASSERT(2, board != NULL);
 	ASSERT(2, sum != NULL);
@@ -1466,7 +1466,7 @@ get_attack_mask(Board *board, int color, int *sum)
 
 /* Evaluate attacks and threats against the kings.  */
 static void
-king_attack_eval(Board *board, EvalData *ed)
+king_attack_eval(const Board *board, EvalData *ed)
 {
 	int color;
 	int sum[2];
@@ -1549,7 +1549,7 @@ store_pawn_hash(U64 key, U64 passers, int op, int eg)
 }
 
 static void
-eval_pawns(Board *board, EvalData *ed)
+eval_pawns(const Board *board, EvalData *ed)
 {
 	int color;
 	int hash_op = 0;
@@ -1596,7 +1596,7 @@ eval_pawns(Board *board, EvalData *ed)
 
 /* Evaluate all pieces for one side.  */
 static void
-eval_pieces(Board *board, int color, EvalData *ed)
+eval_pieces(const Board *board, int color, EvalData *ed)
 {
 	int *op;
 	int *eg;
@@ -1633,7 +1633,7 @@ init_ed(EvalData *ed)
 
 /* The main static evaluation function.  */
 int
-eval(Board *board)
+eval(const Board *board)
 {
 	int phase;
 	int score;

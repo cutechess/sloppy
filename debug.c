@@ -38,7 +38,7 @@ val_is_ok(int val)
    This function isn't complete, but it's usually enough to see if
    there's something wrong with bitmasks, makemove, movegen, etc.  */
 bool
-board_is_ok(Board *board)
+board_is_ok(const Board *board)
 {
 	int sq;
 
@@ -94,7 +94,7 @@ board_is_ok(Board *board)
    Returns 0 if they have the same data.
    This function is really incomplete but also not that needed.  */
 int
-board_cmp(Board *board1, Board *board2)
+board_cmp(const Board *board1, const Board *board2)
 {
 	int pc;
 	

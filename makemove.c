@@ -436,7 +436,7 @@ undo_nullmove(Board *board)
 /* Returns the number of times the current position has been reached
    in the game.  */
 int
-get_nrepeats(Board *board, int max_repeats)
+get_nrepeats(const Board *board, int max_repeats)
 {
 	int i;
 	int nrepeats;

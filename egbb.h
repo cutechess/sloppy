@@ -13,7 +13,7 @@ extern void unload_bitbases(void);
 
 /* Probe the bitbases for a result.
    Returns VAL_NONE if the position is not found.  */
-extern int probe_bitbases(Board *board, int ply, int depth);
+extern int probe_bitbases(const Board *board, int ply, int depth);
 
 #endif /* EGBB_H */
 

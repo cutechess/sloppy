@@ -27,7 +27,7 @@ extern void move_to_san(char *str_move, Board *board, U32 move);
 extern int fen_to_board(Board *board, const char *fen);
 
 /* Convert a board into a board string (in FEN notation).  */
-extern void board_to_fen(Board *board, char *fen);
+extern void board_to_fen(const Board *board, char *fen);
 
 #endif /* NOTATION_H */
 

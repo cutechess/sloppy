@@ -117,15 +117,13 @@ static XbCmd xbcmds[] =
 };
 
 static XbCmd
-*get_xbcmd(Chess *chess)
+*get_xbcmd(void)
 {
 	int i;
 	char *cmd;
 	char *param;
 	char line[MAX_BUF];
 	
-	ASSERT(1, chess != NULL);
-
 	strlcpy(line, last_input, MAX_BUF);
 	cmd = strtok_r(line, " ", &param);
 	
@@ -140,13 +138,13 @@ static XbCmd
 }
 
 CmdType
-get_xboard_cmd_type(Chess *chess)
+get_xboard_cmd_type(const Chess *chess)
 {
 	XbCmd *xbcmd;
 	
 	ASSERT(1, chess != NULL);
 	
-	xbcmd = get_xbcmd(chess);
+	xbcmd = get_xbcmd();
 	if (xbcmd != NULL) {
 		if ((chess->analyze && xbcmd->mode != XBMODE_BASIC)
 		||  (!chess->analyze && xbcmd->mode != XBMODE_ANALYZE))
@@ -183,7 +181,7 @@ xb_result(Chess *chess, const char *result)
 
 /* Execute an Xboard analyze mode command.  */
 static int
-exec_xb_analyze_cmd(Chess *chess, XbCmd *xbcmd)
+exec_xb_analyze_cmd(Chess *chess, const XbCmd *xbcmd)
 {
 	ASSERT(1, chess != NULL);
 	ASSERT(1, xbcmd != NULL);
@@ -230,7 +228,7 @@ read_xb_input(Chess *chess)
 	strlcpy(line, last_input, MAX_BUF);
 	cmd = strtok_r(line, " ", &param);
 
-	xbcmd = get_xbcmd(chess);
+	xbcmd = get_xbcmd();
 	if (xbcmd == NULL
 	||  (chess->analyze && xbcmd->mode == XBMODE_BASIC)
 	||  (!chess->analyze && xbcmd->mode == XBMODE_ANALYZE)) {
@@ -432,12 +430,4 @@ read_xb_input(Chess *chess)
 
 	return 0;
 }
-
-
-
-
-
-
-
-
 

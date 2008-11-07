@@ -761,7 +761,7 @@ fen_to_board(Board *board, const char *fen)
 
 /* Convert a board into a board string (in FEN notation).  */
 void
-board_to_fen(Board *board, char *fen)
+board_to_fen(const Board *board, char *fen)
 {
 	int sq;
 	int nempty = 0;	/* num. of successive empty squares on a rank */

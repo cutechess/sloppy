@@ -121,7 +121,7 @@ unload_bitbases(void)
    Returns VAL_NONE if the position is not found.  */
 #define _NOTFOUND 99999
 int
-probe_bitbases(Board *board, int ply, int depth)
+probe_bitbases(const Board *board, int ply, int depth)
 {
 	int val;
 	int sq;

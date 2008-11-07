@@ -45,10 +45,10 @@ typedef enum _MateType
 
 /* Returns true if both sides have insufficient mating material.  */
 static bool
-insuf_mat(Board *board)
+insuf_mat(const Board *board)
 {
-	U64 *whites;
-	U64 *blacks;
+	const U64 *whites;
+	const U64 *blacks;
 
 	ASSERT(1, board != NULL);
 
@@ -65,7 +65,7 @@ insuf_mat(Board *board)
 }
 
 static MateType
-get_mate_type(Board *board)
+get_mate_type(const Board *board)
 {
 	MoveLst move_list;
 
@@ -86,7 +86,7 @@ get_mate_type(Board *board)
 /* Print the result of the game and return true if the game is over.
    Otherwise just return false.  */
 static bool
-is_game_over(Board *board)
+is_game_over(const Board *board)
 {
 	bool game_over = true;
 
@@ -291,7 +291,7 @@ log_game(const char *result, const char *wname, const char *bname)
 
 /* Updates the log file with details of the last move.  */
 void
-update_game_log(Board *board, const char *str_move, int score, bool book_used)
+update_game_log(const Board *board, const char *str_move, int score, bool book_used)
 {
 	int move_num;
 	FILE *fp;

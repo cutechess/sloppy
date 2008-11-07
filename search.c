@@ -96,7 +96,7 @@ get_next_move(MoveLst *move_list, int index)
 
 /* Give move ordering scores to the moves in a list.  */
 static void
-score_moves(Board *board, U32 hash_move, int ply, MoveLst *move_list)
+score_moves(const Board *board, U32 hash_move, int ply, MoveLst *move_list)
 {
 	int i;
 	int *scorep;
@@ -127,7 +127,7 @@ score_moves(Board *board, U32 hash_move, int ply, MoveLst *move_list)
 
 /* Give quiescence search move ordering scores to the moves in a list.  */
 static void
-score_qs_moves(Board *board, MoveLst *move_list)
+score_qs_moves(const Board *board, MoveLst *move_list)
 {
 	int i;
 	int *scorep;
@@ -153,7 +153,7 @@ score_qs_moves(Board *board, MoveLst *move_list)
 
 /* Returns true if the side to move is in checkmate.  */
 static bool
-board_is_mate(Board *board)
+board_is_mate(const Board *board)
 {
 	MoveLst move_list;
 	
@@ -171,7 +171,7 @@ board_is_mate(Board *board)
    <ply> plies (from the root) must have been found in one of the previous
    iterations of the search, so we mustn't return a mate shorter than that.  */
 static int
-mate_distance_pruning(Board *board, int *alpha, int *beta, int ply)
+mate_distance_pruning(const Board *board, int *alpha, int *beta, int ply)
 {
 	int val;
 	
@@ -200,7 +200,7 @@ mate_distance_pruning(Board *board, int *alpha, int *beta, int ply)
 
 /* Returns true if the side to move has enough material to win.  */
 static bool
-can_win(Board *board)
+can_win(const Board *board)
 {
 	int color;
 	
@@ -312,7 +312,7 @@ qs_search(Chess *chess, int alpha, int beta, int depth)
 /* Returns true if the new move is a forced retaliation (piece exchange) to the
    opponent's previous move.  */
 static bool
-is_recapture(Board *board, U32 move, int score)
+is_recapture(const Board *board, U32 move, int score)
 {
 	U32 prev_move;
 	int capt;
@@ -754,12 +754,12 @@ init_killers(void)
 
 /* Print the principal variation.  */
 static void
-print_pv(Chess *chess, int depth, int score, U64 nnodes)
+print_pv(const Chess *chess, int depth, int score, U64 nnodes)
 {
 	int i;
 	int t_elapsed;
 	Board tmp_board;
-	PvLine *pv;
+	const PvLine *pv;
 
 	ASSERT(1, chess != NULL);
 

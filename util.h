@@ -97,10 +97,10 @@ extern void log_date(const char *format, ...);
 extern int get_nproc(void);
 
 /* Make <dest> a copy of <src>.  */
-extern void copy_board(Board *dest, Board *src);
+extern void copy_board(Board *dest, const Board *src);
 
 /* Display an ASCII version of the board.  */
-extern void print_board(Board *board);
+extern void print_board(const Board *board);
 
 /* Returns true if <sq> is a valid square index.  */
 extern bool is_on_board(int sq);
