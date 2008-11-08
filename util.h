@@ -5,9 +5,6 @@
 #include "sloppy.h"
 
 
-/* If this is defined, Sloppy can use one or more threads (pthreads).  */
-#define USE_THREADS
-
 typedef enum _BookType
 {
 	BOOK_MEM,	/* book is in memory */

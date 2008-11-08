@@ -4,18 +4,18 @@
 CC = cl
 LD = link
 CFLAGS = /Zi /Ox /Gr /GL
-LDFLAGS = /DEBUG /LTCG pthreadVC2.lib
+LDFLAGS = /DEBUG /LTCG
 EXECUTABLE = sloppy.exe
 
 DEBUGLEVEL = 1
-DEFS = -DDEBUG_LEVEL=$(DEBUGLEVEL)
+DEFS = -DDEBUG_LEVEL=$(DEBUGLEVEL) -DUSE_THREADS
 
 OBJS = avltree.obj bench.obj chess.obj debug.obj egbb.obj eval.obj hash.obj main.obj notation.obj \
        game.obj input.obj makemove.obj pgn.obj book.obj magicmoves.obj movegen.obj perft.obj \
-       search.obj util.obj xboard.obj
+       search.obj thread.obj util.obj xboard.obj
 
 .c.obj:
-	$(CC) $(CFLAGS) /c $< $(DEFS)
+	$(CC) -D_CRT_SECURE_NO_DEPRECATE $(CFLAGS) /c $< $(DEFS)
 
 all: $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) /out:$(EXECUTABLE)

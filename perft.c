@@ -40,6 +40,7 @@
 #include "movegen.h"
 #include "makemove.h"
 #include "notation.h"
+#include "thread.h"
 
 #define PERFT_HASH_SIZE 0x200000
 
@@ -52,8 +53,6 @@ typedef struct _PerftHash
 
 
 #ifdef USE_THREADS
-
-#include <pthread.h>
 
 typedef struct _PerftJob
 {
@@ -70,11 +69,11 @@ typedef struct _PerftData
 	int njobs;
 	int job_index;
 	U64 nnodes;
-	pthread_mutex_t job_mutex;
-	pthread_mutex_t node_count_mutex;
+	mutex_t job_mutex;
+	mutex_t node_count_mutex;
 } PerftData;
 
-static pthread_mutex_t hash_mutex;
+static mutex_t hash_mutex;
 
 #endif /* USE_THREADS */
 
@@ -115,7 +114,7 @@ store_perft_hash(U64 key, U64 nnodes, int depth, PerftHash *hash)
 	hash = &hash[key % PERFT_HASH_SIZE];
 
 #ifdef USE_THREADS
-	pthread_mutex_lock(&hash_mutex);
+	mutex_lock(&hash_mutex);
 #endif /* USE_THREADS */
 	if (depth >= hash->depth) {
 		hash->depth = depth;
@@ -123,7 +122,7 @@ store_perft_hash(U64 key, U64 nnodes, int depth, PerftHash *hash)
 		hash->nnodes = nnodes;
 	}
 #ifdef USE_THREADS
-	pthread_mutex_unlock(&hash_mutex);
+	mutex_unlock(&hash_mutex);
 #endif /* USE_THREADS */
 }
 
@@ -167,8 +166,8 @@ perft(Board *board, int depth, PerftHash *hash)
 
 
 #ifdef USE_THREADS
-static void *
-threadfunc(void *data)
+static THREAD_FUNC
+threadfunc(THREAD_ARG data)
 {
 	PerftData *pd = (PerftData*)data;
 	ASSERT(2, pd != NULL);
@@ -181,13 +180,13 @@ threadfunc(void *data)
 		U64 nnodes;
 		
 		// look for work
-		pthread_mutex_lock(&pd->job_mutex);
+		mutex_lock(&pd->job_mutex);
 		if (pd->job_index >= pd->njobs) {
-			pthread_mutex_unlock(&pd->job_mutex);
-			return NULL;
+			mutex_unlock(&pd->job_mutex);
+			return 0;
 		}
 		index = pd->job_index++;
-		pthread_mutex_unlock(&pd->job_mutex);
+		mutex_unlock(&pd->job_mutex);
 		
 		board = &pd->jobs[index].board;
 		move = pd->jobs[index].move;
@@ -196,14 +195,14 @@ threadfunc(void *data)
 		
 		nnodes = perft(board, pd->depth, pd->hash);
 		
-		pthread_mutex_lock(&pd->node_count_mutex);
+		mutex_lock(&pd->node_count_mutex);
 		if (pd->divide)
 			printf("%s %" PRIu64 "\n", str_move, nnodes);
 		pd->nnodes += nnodes;
-		pthread_mutex_unlock(&pd->node_count_mutex);
+		mutex_unlock(&pd->node_count_mutex);
 	}
 	
-	return NULL;
+	return 0;
 }
 #endif
 
@@ -212,7 +211,7 @@ perft_root(Board *board, int depth, bool divide)
 {
 #ifdef USE_THREADS
 	PerftData pd;
-	pthread_t *p_thread;
+	thread_t *p_thread;
 #endif /* USE_THREADS */
 
 	int i;
@@ -240,9 +239,9 @@ perft_root(Board *board, int depth, bool divide)
 	pd.nnodes = 0;
 	pd.depth = depth - 1;
 	pd.divide = divide;
-	pthread_mutex_init(&hash_mutex, NULL);
-	pthread_mutex_init(&pd.job_mutex, NULL);
-	pthread_mutex_init(&pd.node_count_mutex, NULL);
+	mutex_init(&hash_mutex);
+	mutex_init(&pd.job_mutex);
+	mutex_init(&pd.node_count_mutex);
 	pd.job_index = 0;
 	pd.njobs = move_list.nmoves;
 	pd.jobs = calloc(pd.njobs, sizeof(PerftJob));
@@ -254,27 +253,20 @@ perft_root(Board *board, int depth, bool divide)
 		job->move = move_list.move[i];
 	}
 	
-	p_thread = calloc(settings.nthreads, sizeof(pthread_t));
+	p_thread = calloc(settings.nthreads, sizeof(thread_t));
 	pd.hash = hash;
 
-	for (i = 0; i < settings.nthreads; i++) {
-		int rc = pthread_create(&p_thread[i], NULL, threadfunc, &pd);
-		if (rc != 0)
-			fatal_error("Can't create thread: %s", strerror(rc));
-	}
+	for (i = 0; i < settings.nthreads; i++)
+		t_create(threadfunc, (THREAD_ARG)&pd, &p_thread[i]);
+	join_threads(p_thread, settings.nthreads);
 
-	for (i = 0; i < settings.nthreads; i++) {
-		int rc = pthread_join(p_thread[i], NULL);
-		if (rc != 0)
-			fatal_error("Can't join thread: %s", strerror(rc));
-	}
 
 	nnodes = pd.nnodes;
 	free(p_thread);
 	free(pd.jobs);
-	pthread_mutex_destroy(&pd.node_count_mutex);
-	pthread_mutex_destroy(&pd.job_mutex);
-	pthread_mutex_destroy(&hash_mutex);
+	mutex_destroy(&pd.node_count_mutex);
+	mutex_destroy(&pd.job_mutex);
+	mutex_destroy(&hash_mutex);
 
 #else /* not USE_THREADS */
 
@@ -300,4 +292,3 @@ perft_root(Board *board, int depth, bool divide)
 	free(hash);
 	return nnodes;
 }
-

@@ -446,7 +446,9 @@ static void
 initialize(Chess *chess)
 {
 	unsigned long hsize;
+#ifndef WINDOWS
 	char *env;
+#endif /* WINDOWS */
 
 	printf("%s %s by Ilari Pihlajisto\n\n", APP_NAME, APP_VERSION);
 #ifdef GIT_REV

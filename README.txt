@@ -26,8 +26,7 @@ COMPILING
    folder.
   
    The Windows version compiles at least with Mingw and Microsoft's Visual C++
-   compiler. A makefile for both is included. You'll also need Pthreads for
-   Windows: http://sourceware.org/pthreads-win32/
+   compiler. Makefiles for both are included (Makefile.mgw and Makefile.win).
 
 
 INTERFACE, COMMAND LINE OPTIONS
