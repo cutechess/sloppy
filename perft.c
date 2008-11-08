@@ -2,7 +2,7 @@
    Perft tests Sloppy's move generation, makemove and hash table implementation,
    and it can also be used as a benchmark.
 
-   Copyright (C) 2007 Ilari Pihlajisto (ilari.pihlajisto@mbnet.fi)
+   Copyright (C) 2008 Ilari Pihlajisto (ilari.pihlajisto@mbnet.fi)
 
    Sloppy is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ store_perft_hash(U64 key, U64 nnodes, int depth, PerftHash *hash)
 
 #ifdef USE_THREADS
 	mutex_lock(&hash_mutex);
-#endif /* USE_THREADS */
+#endif
 	if (depth >= hash->depth) {
 		hash->depth = depth;
 		hash->key = key;
@@ -123,7 +123,7 @@ store_perft_hash(U64 key, U64 nnodes, int depth, PerftHash *hash)
 	}
 #ifdef USE_THREADS
 	mutex_unlock(&hash_mutex);
-#endif /* USE_THREADS */
+#endif
 }
 
 static U64
@@ -166,8 +166,10 @@ perft(Board *board, int depth, PerftHash *hash)
 
 
 #ifdef USE_THREADS
-static THREAD_FUNC
-threadfunc(THREAD_ARG data)
+
+/* The starting point for worker threads.  */
+static tfunc_t
+threadfunc(void *data)
 {
 	PerftData *pd = (PerftData*)data;
 	ASSERT(2, pd != NULL);
@@ -179,11 +181,12 @@ threadfunc(THREAD_ARG data)
 		char str_move[MAX_BUF];
 		U64 nnodes;
 		
-		// look for work
+		/* Take a job from the job array, or break if
+		   there are no jobs left.  */
 		mutex_lock(&pd->job_mutex);
 		if (pd->job_index >= pd->njobs) {
 			mutex_unlock(&pd->job_mutex);
-			return 0;
+			break;
 		}
 		index = pd->job_index++;
 		mutex_unlock(&pd->job_mutex);
@@ -195,6 +198,7 @@ threadfunc(THREAD_ARG data)
 		
 		nnodes = perft(board, pd->depth, pd->hash);
 		
+		/* Update the shared node count.  */
 		mutex_lock(&pd->node_count_mutex);
 		if (pd->divide)
 			printf("%s %" PRIu64 "\n", str_move, nnodes);
@@ -206,6 +210,10 @@ threadfunc(THREAD_ARG data)
 }
 #endif
 
+/* Test Sloppy's move generation, make_move(), hash table and performance.
+   This function calculates the number of nodes in a minimax search of the
+   current board position to depth <depth>.
+   If <divide> is true, a node count for each root move is also displayed.  */
 U64
 perft_root(Board *board, int depth, bool divide)
 {
@@ -236,6 +244,7 @@ perft_root(Board *board, int depth, bool divide)
 
 #ifdef USE_THREADS
 
+	/* Initialize the threads, mutexes and other SMP stuff.  */
 	pd.nnodes = 0;
 	pd.depth = depth - 1;
 	pd.divide = divide;
@@ -246,6 +255,8 @@ perft_root(Board *board, int depth, bool divide)
 	pd.njobs = move_list.nmoves;
 	pd.jobs = calloc(pd.njobs, sizeof(PerftJob));
 	
+	/* There are as many job entries for worker threads as there are
+	   root moves. Each job entry gets its own copy of the board.   */
 	for (i = 0; i < move_list.nmoves; i++) {
 		PerftJob *job = pd.jobs + i;
 		
@@ -256,11 +267,13 @@ perft_root(Board *board, int depth, bool divide)
 	p_thread = calloc(settings.nthreads, sizeof(thread_t));
 	pd.hash = hash;
 
+	/* Create the workers. They'll start working immediately.  */
 	for (i = 0; i < settings.nthreads; i++)
-		t_create(threadfunc, (THREAD_ARG)&pd, &p_thread[i]);
+		t_create(threadfunc, (void*)&pd, &p_thread[i]);
+	/* Wait until all the work is done.  */
 	join_threads(p_thread, settings.nthreads);
 
-
+	/* Free resources.  */
 	nnodes = pd.nnodes;
 	free(p_thread);
 	free(pd.jobs);
@@ -270,6 +283,7 @@ perft_root(Board *board, int depth, bool divide)
 
 #else /* not USE_THREADS */
 
+	/* Single-threaded perft.  */
 	for (i = 0; i < move_list.nmoves; i++) {
 		U64 tmp_nnodes;
 		char str_move[MAX_BUF];
@@ -278,7 +292,6 @@ perft_root(Board *board, int depth, bool divide)
 		move_to_str(move, str_move);
 		make_move(board, move);
 		
-		/* Single threaded perft */
 		tmp_nnodes = perft(board, depth - 1, hash);
 		nnodes += tmp_nnodes;
 		if (divide)
@@ -292,3 +305,4 @@ perft_root(Board *board, int depth, bool divide)
 	free(hash);
 	return nnodes;
 }
+

@@ -253,6 +253,7 @@
 
    TODO:
 
+    - gen_pc_moves() should be able to work with a const board pointer
     - Don't search the book if we're past X plies
     - Don't respond to ping while searching, unless in analyze/pondering mode
     - Support "avoid move" test positions

@@ -1,11 +1,11 @@
 #include "thread.h"
 
 #ifdef USE_THREADS
-
 #include "util.h"
 
 #ifdef WINDOWS
 
+/* Create a new Windows thread.  */
 void
 t_create(LPTHREAD_START_ROUTINE func, void *arg, thread_t *thrd)
 {
@@ -13,6 +13,7 @@ t_create(LPTHREAD_START_ROUTINE func, void *arg, thread_t *thrd)
 	*thrd = CreateThread(NULL, 0, func, arg, 0, &iID);
 }
 
+/* Wait for Windows threads to finish.  */
 void
 join_threads(thread_t *threads, int num)
 {
@@ -29,6 +30,7 @@ join_threads(thread_t *threads, int num)
 
 #include <string.h>
 
+/* Wait for POSIX threads to finish.  */
 void
 join_threads(thread_t *threads, int num)
 {
@@ -43,3 +45,4 @@ join_threads(thread_t *threads, int num)
 #endif /* not WINDOWS */
 
 #endif /* USE_THREADS */
+
