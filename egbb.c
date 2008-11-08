@@ -39,7 +39,7 @@
   #define CDECL
   #define EGBB_NAME "egbbso.so"
   #define HMODULE void*
-  #define LoadLibrary(x) dlopen(x, RTLD_LAZY)
+  #define LoadLibrary(x) dlopen((x), RTLD_LAZY | RTLD_LOCAL)
   #define GetProcAddress dlsym
 #endif /* not WINDOWS */
 
