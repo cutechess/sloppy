@@ -296,7 +296,6 @@
 #include "avltree.h"
 #include "book.h"
 #include "eval.h"
-#include "perft.h"
 #include "hash.h"
 #include "egbb.h"
 
@@ -604,9 +603,6 @@ main(void)
 	unload_bitbases();
 	destroy_hash();
 	destroy_pawn_hash();
-#ifdef USE_THREADS
-	thread_cleanup();
-#endif /* USE_THREADS */
 	log_date("Sloppy exited at ");
 
 	return EXIT_SUCCESS;

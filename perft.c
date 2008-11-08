@@ -55,32 +55,26 @@ typedef struct _PerftHash
 
 #include <pthread.h>
 
+typedef struct _PerftJob
+{
+	Board board;
+	U32 move;
+} PerftJob;
+
 typedef struct _PerftData
 {
-	Board *board;
 	PerftHash *hash;
-	char *str_move;
-	U64 nnodes;
+	PerftJob *jobs;
+	bool divide;
 	int depth;
-	int nidle;		/* num. of idle threads */
-	int last_id;		/* id of the thread that was created last */
-	bool all_done;		/* perft is complete */
-	bool divide;		/* print each root move's node count */
+	int njobs;
+	int job_index;
+	U64 nnodes;
+	pthread_mutex_t job_mutex;
+	pthread_mutex_t node_count_mutex;
 } PerftData;
 
-static PerftData pd;
-
-/* Condition variables.  */
-static pthread_cond_t new_job_cv = PTHREAD_COND_INITIALIZER;
-static pthread_cond_t got_job_cv = PTHREAD_COND_INITIALIZER;
-static pthread_cond_t ready_cv = PTHREAD_COND_INITIALIZER;
-
-/* Mutexes.  */
-static pthread_mutex_t pd_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t new_job_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t got_job_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t ready_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t hash_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t hash_mutex;
 
 #endif /* USE_THREADS */
 
@@ -118,11 +112,11 @@ store_perft_hash(U64 key, U64 nnodes, int depth, PerftHash *hash)
 {
 	ASSERT(2, hash != NULL);
 
+	hash = &hash[key % PERFT_HASH_SIZE];
+
 #ifdef USE_THREADS
 	pthread_mutex_lock(&hash_mutex);
 #endif /* USE_THREADS */
-	hash = &hash[key % PERFT_HASH_SIZE];
-
 	if (depth >= hash->depth) {
 		hash->depth = depth;
 		hash->key = key;
@@ -174,150 +168,55 @@ perft(Board *board, int depth, PerftHash *hash)
 
 #ifdef USE_THREADS
 static void *
-smp_perft(void *data)
+threadfunc(void *data)
 {
-	int id;
-	int depth;
-	U64 nnodes;
-	Board board;
-	char str_move[MAX_BUF];
+	PerftData *pd = (PerftData*)data;
+	ASSERT(2, pd != NULL);
 
-	/* Pthreads for Windows don't work as they're supposed to here, so we
-	   can't make any assumptions on what (if anything) is in *data.  */
-	//ASSERT(1, data == NULL);
-
-	id = pd.last_id;
-
-	pthread_mutex_lock(&pd_mutex);
-	pd.last_id++;
-	pthread_mutex_unlock(&pd_mutex);
-
-	while (!pd.all_done) {
-		/* Tell that you're idle and wait for a job.  */
-		pthread_mutex_lock(&new_job_mutex);
-		pd.nidle++;
-		pthread_mutex_lock(&ready_mutex);
-		pthread_cond_signal(&ready_cv);
-		pthread_mutex_unlock(&ready_mutex);
-		pthread_cond_wait(&new_job_cv, &new_job_mutex);
-		pthread_mutex_unlock(&new_job_mutex);
-
-		/* Getting the new_job signal could also mean that all work
-		   is done. Check <all_done> to see if that's the case.  */
-		if (pd.all_done)
-			pthread_exit(NULL);
+	while (true) {
+		int index;
+		Board *board;
+		U32 move;
+		char str_move[MAX_BUF];
+		U64 nnodes;
 		
-		/* Get the job.  */
-		copy_board(&board, pd.board);
-		strlcpy(str_move, pd.str_move, MAX_BUF);
-		depth = pd.depth;
-
-		/* Give new_request() some time.  */
-		sched_yield();
+		// look for work
+		pthread_mutex_lock(&pd->job_mutex);
+		if (pd->job_index >= pd->njobs) {
+			pthread_mutex_unlock(&pd->job_mutex);
+			return NULL;
+		}
+		index = pd->job_index++;
+		pthread_mutex_unlock(&pd->job_mutex);
 		
-		/* Tell new_request() that you got the job.  */
-		pthread_mutex_lock(&got_job_mutex);
-		pthread_cond_signal(&got_job_cv);
-		pthread_mutex_unlock(&got_job_mutex);
-
-		/* Get the perft score.  */
-		nnodes = perft(&board, depth, pd.hash);
-
-		pthread_mutex_lock(&pd_mutex);
-		if (pd.divide)
-			printf("%d: %s %" PRIu64 "\n", id, str_move, nnodes);
-		pd.nnodes += nnodes;
-		pthread_mutex_unlock(&pd_mutex);
+		board = &pd->jobs[index].board;
+		move = pd->jobs[index].move;
+		move_to_str(move, str_move);
+		make_move(board, move);
+		
+		nnodes = perft(board, pd->depth, pd->hash);
+		
+		pthread_mutex_lock(&pd->node_count_mutex);
+		if (pd->divide)
+			printf("%s %" PRIu64 "\n", str_move, nnodes);
+		pd->nnodes += nnodes;
+		pthread_mutex_unlock(&pd->node_count_mutex);
 	}
-
-	pthread_exit(NULL);
+	
 	return NULL;
 }
-
-static void
-init_threads(pthread_t *pthread)
-{
-	int i;
-
-	ASSERT(1, pthread != NULL);
-	
-	pd.depth = 0;
-	pd.nnodes = 0;
-	pd.last_id = 0;
-	pd.nidle = 0;
-	pd.divide = false;
-	pd.all_done = false;
-
-	for (i = 0; i < settings.nthreads; i++) {
-		int rc = pthread_create(&pthread[i], NULL, smp_perft, NULL);
-		if (rc != 0)
-			fatal_error("Can't create thread: %s", strerror(rc));
-	}
-}
-
-static void
-new_request(const Board *board, int depth, const char *str_move)
-{
-	ASSERT(1, board != NULL);
-	ASSERT(1, str_move != NULL);
-	ASSERT(1, depth > 0);
-
-	/* Prepare a job.  */
-	pthread_mutex_lock(&pd_mutex);
-	pd.board = board;
-	pd.depth = depth;
-	pd.str_move = str_move;
-	pthread_mutex_unlock(&pd_mutex);
-
-	/* Check if there are any idle threads. If not, wait for one
-	   to become ready.  */
-	if (pd.nidle <= 0) {
-		pthread_mutex_lock(&ready_mutex);
-		pthread_cond_wait(&ready_cv, &ready_mutex);
-		pthread_mutex_unlock(&ready_mutex);
-	}
-	
-	/* Offer a job.  */
-	pthread_mutex_lock(&new_job_mutex);
-	pd.nidle--;
-	pthread_cond_signal(&new_job_cv);
-	pthread_mutex_unlock(&new_job_mutex);
-
-	/* Wait until a thread gets the job.  */
-	pthread_mutex_lock(&got_job_mutex);
-	pthread_cond_wait(&got_job_cv, &got_job_mutex);
-	pthread_mutex_unlock(&got_job_mutex);
-}
-
-void
-thread_cleanup(void)
-{
-	/* Destroy mutexes.  */
-	pthread_mutex_destroy(&pd_mutex);
-	pthread_mutex_destroy(&new_job_mutex);
-	pthread_mutex_destroy(&got_job_mutex);
-	pthread_mutex_destroy(&ready_mutex);
-	pthread_mutex_destroy(&hash_mutex);
-
-	/* Destroy condition variables.  */
-	pthread_cond_destroy(&new_job_cv);
-	pthread_cond_destroy(&got_job_cv);
-	pthread_cond_destroy(&ready_cv);
-}
-
 #endif
 
 U64
 perft_root(Board *board, int depth, bool divide)
 {
-	int i;
-	char str_move[MAX_BUF];
-	U64 nnodes = 0;
 #ifdef USE_THREADS
+	PerftData pd;
 	pthread_t *p_thread;
-#else /* not USE_THREADS */
-	U64 tmp_nnodes;
-#endif /* not USE_THREADS */
+#endif /* USE_THREADS */
+
+	int i;
+	U64 nnodes = 0;
 	MoveLst move_list;
 	PerftHash *hash;
 	
@@ -337,40 +236,32 @@ perft_root(Board *board, int depth, bool divide)
 	init_perft_hash(hash);
 
 #ifdef USE_THREADS
+
+	pd.nnodes = 0;
+	pd.depth = depth - 1;
+	pd.divide = divide;
+	pthread_mutex_init(&hash_mutex, NULL);
+	pthread_mutex_init(&pd.job_mutex, NULL);
+	pthread_mutex_init(&pd.node_count_mutex, NULL);
+	pd.job_index = 0;
+	pd.njobs = move_list.nmoves;
+	pd.jobs = calloc(pd.njobs, sizeof(PerftJob));
+	
+	for (i = 0; i < move_list.nmoves; i++) {
+		PerftJob *job = pd.jobs + i;
+		
+		copy_board(&job->board, board);
+		job->move = move_list.move[i];
+	}
+	
 	p_thread = calloc(settings.nthreads, sizeof(pthread_t));
 	pd.hash = hash;
-	init_threads(p_thread);
-	pd.divide = divide;
-#endif /* USE_THREADS */
 
-	for (i = 0; i < move_list.nmoves; i++) {
-		U32 move = move_list.move[i];
-
-		move_to_str(move, str_move);
-		make_move(board, move);
-		
-#ifdef USE_THREADS
-		/* Parallel perft */
-		new_request(board, depth - 1, str_move);
-#else /* not USE_THREADS */
-		/* Single threaded perft */
-		tmp_nnodes = perft(board, depth - 1, hash);
-		nnodes += tmp_nnodes;
-		if (divide)
-			printf("%s %" PRIu64 "\n", str_move, tmp_nnodes);
-#endif /* not USE_THREADS */
-		undo_move(board);
+	for (i = 0; i < settings.nthreads; i++) {
+		int rc = pthread_create(&p_thread[i], NULL, threadfunc, &pd);
+		if (rc != 0)
+			fatal_error("Can't create thread: %s", strerror(rc));
 	}
-#ifdef USE_THREADS
-
-	pthread_mutex_lock(&pd_mutex);
-	pd.all_done = true;
-	pthread_mutex_unlock(&pd_mutex);
-
-	/* Make sure no one's waiting for a job.  */
-	pthread_mutex_lock(&new_job_mutex);
-	pthread_cond_broadcast(&new_job_cv);
-	pthread_mutex_unlock(&new_job_mutex);
 
 	for (i = 0; i < settings.nthreads; i++) {
 		int rc = pthread_join(p_thread[i], NULL);
@@ -380,7 +271,32 @@ perft_root(Board *board, int depth, bool divide)
 
 	nnodes = pd.nnodes;
 	free(p_thread);
-#endif /* USE_THREADS */
+	free(pd.jobs);
+	pthread_mutex_destroy(&pd.node_count_mutex);
+	pthread_mutex_destroy(&pd.job_mutex);
+	pthread_mutex_destroy(&hash_mutex);
+
+#else /* not USE_THREADS */
+
+	for (i = 0; i < move_list.nmoves; i++) {
+		U64 tmp_nnodes;
+		char str_move[MAX_BUF];
+		U32 move = move_list.move[i];
+
+		move_to_str(move, str_move);
+		make_move(board, move);
+		
+		/* Single threaded perft */
+		tmp_nnodes = perft(board, depth - 1, hash);
+		nnodes += tmp_nnodes;
+		if (divide)
+			printf("%s %" PRIu64 "\n", str_move, tmp_nnodes);
+
+		undo_move(board);
+	}
+
+#endif /* not USE_THREADS */
+
 	free(hash);
 	return nnodes;
 }
