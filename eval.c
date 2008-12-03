@@ -91,7 +91,7 @@ typedef struct _EvalData
 #define  __attribute__(x)
 //#   pragma pack(1)
 #endif /* not __GNUC__ */
-#define PHASH_SIZE 32768
+#define PHASH_SIZE 0x8000
 typedef struct _PawnHash
 {
 	U64 passers;
@@ -1523,7 +1523,7 @@ probe_pawn_hash(U64 key, U64 *passers, EvalData *ed)
 
 	if (key == 1)
 		return false;
-	hash = &pawn_hash[key % PHASH_SIZE];
+	hash = &pawn_hash[key & (PHASH_SIZE - 1)];
 	if (hash->key == key) {
 		*passers = hash->passers;
 		ed->op += hash->op;
@@ -1539,7 +1539,7 @@ store_pawn_hash(U64 key, U64 passers, int op, int eg)
 {
 	PawnHash *hash;
 	
-	hash = &pawn_hash[key % PHASH_SIZE];
+	hash = &pawn_hash[key & (PHASH_SIZE - 1)];
 	if (hash->key != key) {
 		hash->key = key;
 		hash->passers = passers;

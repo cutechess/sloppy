@@ -99,7 +99,7 @@ probe_perft_hash(U64 key, int depth, const PerftHash *hash)
 
 	ASSERT(2, hash != NULL);
 
-	hash = &hash[key % PERFT_HASH_SIZE];
+	hash = &hash[key & (PERFT_HASH_SIZE - 1)];
 	if (hash->key == key && hash->depth == depth)
 		nnodes = hash->nnodes;
 
@@ -111,7 +111,7 @@ store_perft_hash(U64 key, U64 nnodes, int depth, PerftHash *hash)
 {
 	ASSERT(2, hash != NULL);
 
-	hash = &hash[key % PERFT_HASH_SIZE];
+	hash = &hash[key & (PERFT_HASH_SIZE - 1)];
 
 #ifdef USE_THREADS
 	mutex_lock(&hash_mutex);
