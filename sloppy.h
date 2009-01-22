@@ -21,8 +21,10 @@
 
 #ifdef _MSC_VER
 
-#define snprintf  _snprintf
-#define vsnprintf _vsnprintf
+#define snprintf _snprintf
+#if _MSC_VER < 1500 /* Earlier than MSVC 2008 */
+  #define vsnprintf _vsnprintf
+#endif
 
 #define PRIu64 "I64u"
 #define PRIx64 "I64x"
