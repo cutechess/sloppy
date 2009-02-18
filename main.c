@@ -310,7 +310,7 @@ set_config_option(const char *opt_name, const char *opt_val)
 	if (strcmp(opt_name, "hash") == 0) {
 		int hsize = atoi(opt_val);
 		if (hsize > 0)
-			settings.hash_size = (hsize * 0x100000) / sizeof(Hash);
+			set_hash_size(hsize);
 		else
 			my_error("config: invalid hash size: %s", opt_val);
 	} else if (strcmp(opt_name, "egbb_5men") == 0) {
@@ -471,6 +471,7 @@ initialize(Chess *chess)
 	init_endian();
 	init_movegen();
 	init_eval();
+	init_zobrist();
 	init_hash();
 
 	if (settings.nthreads < 1) {

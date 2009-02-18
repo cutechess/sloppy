@@ -45,8 +45,15 @@ typedef struct _Hash
 extern Zobrist zobrist;
 
 
-/* Initialize the zobrist values and the hash table.  */
+/* Set a new hash table size (in megabytes),
+   and deallocate the old table (if any).  */
+extern void set_hash_size(int hsize);
+
+/* Initialize the hash table.  */
 extern void init_hash(void);
+
+/* Initialize the zobrist values.  */
+extern void init_zobrist(void);
 
 /* Free the memory allocated for the hash table.  */
 extern void destroy_hash(void);

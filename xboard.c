@@ -60,6 +60,7 @@ typedef enum _XbId
 	XBID_ANALYZE,
 	XBID_NAME,
 	XBID_COMPUTER,
+	XBID_MEMORY,
 	XBID_EXIT,
 	XBID_ANALYZE_UPDATE, /* "." */
 	XBID_MOVESTR, /* any chess move */
@@ -111,6 +112,7 @@ static XbCmd xbcmds[] =
 	{ XBID_ANALYZE, "analyze", CMDT_CANCEL, XBMODE_BASIC },
 	{ XBID_NAME, "name", CMDT_EXEC_AND_CONTINUE, XBMODE_BASIC },
 	{ XBID_COMPUTER, "computer", CMDT_EXEC_AND_CONTINUE, XBMODE_BASIC },
+	{ XBID_MEMORY, "memory", CMDT_CANCEL, XBMODE_ALL },
 	{ XBID_EXIT, "exit", CMDT_CANCEL, XBMODE_ANALYZE },
 	{ XBID_ANALYZE_UPDATE, ".", CMDT_EXEC_AND_CONTINUE, XBMODE_ANALYZE },
 	{ XBID_MOVESTR, "", CMDT_CANCEL, XBMODE_ALL }
@@ -243,6 +245,7 @@ read_xb_input(Chess *chess)
 		int st;
 		int time_left;
 		int depth;
+		int memory;
 		char *tok;
 		U32 move;
 	case XBID_XBOARD:
@@ -259,12 +262,24 @@ read_xb_input(Chess *chess)
 		       " ping=1"
 		       " setboard=1"
 		       " playother=1"
+		       " san=0"
+		       " usermove=0"
+		       " time=1"
+		       " draw=0"
 		       " variants=\"normal\""
 		       " colors=0"
 		       " sigint=0"
 		       " sigterm=0"
+		       " reuse=1"
 		       " analyze=1"
+		       " ics=0"
 		       " name=1"
+		       " pause=0"
+		       " nps=0"
+		       " debug=0"
+		       " memory=1"
+		       " smp=0"
+		       " egt=scorpio"
 		       " done=1\n", APP_NAME, APP_VERSION);
 		break;
 	case XBID_ACCEPTED:
@@ -406,6 +421,15 @@ read_xb_input(Chess *chess)
 		strlcpy(chess->op_name, param, MAX_BUF);
 		break;
 	case XBID_COMPUTER:
+		break;
+	case XBID_MEMORY:
+		memory = atoi(param);
+		if (memory < 8 || memory > 1024)
+			printf("Hash size must be between 8 and 1024 MB.\n");
+		else {
+			set_hash_size(memory);
+			init_hash();
+		}
 		break;
 	case XBID_MOVESTR:
 		move = str_to_move(board, cmd);

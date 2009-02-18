@@ -74,15 +74,37 @@ clear_hash_table(void)
 	}
 }
 
-/* Initialize the zobrist values and the hash table.  */
+/* Set a new hash table size (in megabytes),
+   and deallocate the old table (if any).  */
+void
+set_hash_size(int hsize)
+{
+	ASSERT(1, hsize > 0);
+	
+	if (hash_table != NULL) {
+		free(hash_table);
+		hash_table = NULL;
+	}
+	settings.hash_size = (hsize * 0x100000) / sizeof(Hash);
+}
+
+/* Initialize the hash table.  */
 void
 init_hash(void)
+{
+	ASSERT(1, settings.hash_size > 0);
+	
+	hash_table = calloc(settings.hash_size, sizeof(Hash));
+	clear_hash_table();
+}
+
+/* Initialize the zobrist values.  */
+void
+init_zobrist(void)
 {
 	int color;
 	int sq;
 
-	hash_table = calloc(settings.hash_size, sizeof(Hash));
-	
 	zobrist.color = rand64();
 	for (color = WHITE; color <= BLACK; color++) {
 		int pc;
@@ -96,8 +118,6 @@ init_hash(void)
 	}
 	for (sq = 0; sq < 64; sq++)
 		zobrist.enpassant[sq] = rand64();
-	
-	clear_hash_table();
 }
 
 /* Free the memory allocated for the hash table.  */
