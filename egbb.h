@@ -6,7 +6,7 @@
 
 /* Load the endgame bitbase library.
    Returns true if successfull.  */
-extern bool load_bitbases(const char *main_path, size_t cache_size, EgbbLoadType load_type);
+extern bool load_bitbases(void);
 
 /* Unload the endgame bitbase object/library.  */
 extern void unload_bitbases(void);

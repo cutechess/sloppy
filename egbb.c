@@ -63,14 +63,23 @@ static bool bitbases_loaded = false;
 
 /* Load the dll and get the address of the load and probe functions.  */
 bool
-load_bitbases(const char *main_path, size_t cache_size, EgbbLoadType load_type)
+load_bitbases(void)
 {
 	PLOAD_EGBB load_egbb;
 	char path[MAX_BUF];
+	
+	const char *main_path = settings.egbb_path;
+	int cache_size = (int)settings.egbb_cache_size;
+	EgbbLoadType load_type = settings.egbb_load_type;
 
 	ASSERT(1, main_path != NULL);
 	ASSERT(1, cache_size >= 0);
 	ASSERT(1, load_type != EGBB_OFF);
+	
+	if (bitbases_loaded) {
+		my_error("Bitbases are already loaded");
+		return false;
+	}
 
 	strlcpy(path, main_path, MAX_BUF);
 	strlcat(path, EGBB_NAME, MAX_BUF);
@@ -85,16 +94,18 @@ load_bitbases(const char *main_path, size_t cache_size, EgbbLoadType load_type)
 	   pointer, but it should work fine on any system Sloppy runs on.  */
 	load_egbb = (PLOAD_EGBB)GetProcAddress(egbb_hnd, "load_egbb_5men");
 	if (load_egbb == NULL) {
+		unload_bitbases();
 		my_error("Can't find bitbase load function");
 		return false;
 	}
 	probe_egbb = (PPROBE_EGBB)GetProcAddress(egbb_hnd, "probe_egbb_5men");
 	if (probe_egbb == NULL) {
+		unload_bitbases();
 		my_error("Can't find bitbase probe function");
 		return false;
 	}
 
-	load_egbb(main_path, (int)cache_size, load_type);
+	load_egbb(main_path, cache_size, load_type);
 	bitbases_loaded = true;
 	return true;
 }

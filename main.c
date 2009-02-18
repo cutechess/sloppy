@@ -534,8 +534,8 @@ initialize(Chess *chess)
 		printf("Book learning OFF\n");
 
 	if (settings.egbb_load_type != EGBB_OFF
-	&&  load_bitbases(settings.egbb_path, settings.egbb_cache_size,
-	                  settings.egbb_load_type)) {
+	&&  strlen(settings.egbb_path) > 0
+	&&  load_bitbases()) {
 		if (settings.egbb_max_men >= 5)
 			printf("5-men egbbs enabled (if available)\n");
 		else

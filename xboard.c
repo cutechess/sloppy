@@ -28,6 +28,7 @@
 #include "hash.h"
 #include "makemove.h"
 #include "game.h"
+#include "egbb.h"
 #include "xboard.h"
 
 
@@ -61,6 +62,7 @@ typedef enum _XbId
 	XBID_NAME,
 	XBID_COMPUTER,
 	XBID_MEMORY,
+	XBID_EGTPATH,
 	XBID_EXIT,
 	XBID_ANALYZE_UPDATE, /* "." */
 	XBID_MOVESTR, /* any chess move */
@@ -113,6 +115,7 @@ static XbCmd xbcmds[] =
 	{ XBID_NAME, "name", CMDT_EXEC_AND_CONTINUE, XBMODE_BASIC },
 	{ XBID_COMPUTER, "computer", CMDT_EXEC_AND_CONTINUE, XBMODE_BASIC },
 	{ XBID_MEMORY, "memory", CMDT_CANCEL, XBMODE_ALL },
+	{ XBID_EGTPATH, "egtpath", CMDT_CANCEL, XBMODE_ALL },
 	{ XBID_EXIT, "exit", CMDT_CANCEL, XBMODE_ANALYZE },
 	{ XBID_ANALYZE_UPDATE, ".", CMDT_EXEC_AND_CONTINUE, XBMODE_ANALYZE },
 	{ XBID_MOVESTR, "", CMDT_CANCEL, XBMODE_ALL }
@@ -429,6 +432,19 @@ read_xb_input(Chess *chess)
 		else {
 			set_hash_size(memory);
 			init_hash();
+		}
+		break;
+	case XBID_EGTPATH:
+		tok = strtok_r(NULL, " ", &param);
+		if (strcmp(tok, "scorpio") != 0)
+			printf("Unknown egt type: %s\n", tok);
+		else if ((tok = strtok_r(NULL, " ", &param)) != NULL) {
+			if (settings.egbb_load_type == EGBB_OFF)
+				settings.egbb_load_type = LOAD_4MEN;
+			strlcpy(settings.egbb_path, tok, MAX_BUF);
+			if (tok[strlen(tok) - 1] != '/')
+				strlcat(settings.egbb_path, "/", MAX_BUF);
+			load_bitbases();
 		}
 		break;
 	case XBID_MOVESTR:

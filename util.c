@@ -48,7 +48,7 @@ const Castling castling = {
 Settings settings = {
 	0x200000,	/* hash size (num. of entries) */
 	4,		/* egbb_max_men */
-	LOAD_4MEN,	/* egbb load type */
+	EGBB_OFF,	/* egbb load type */
 	0x400000,	/* egbb cache size (bytes) */
 	"",		/* book file */
 	"",		/* egbb path */
