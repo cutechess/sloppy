@@ -1,0 +1,93 @@
+Tasks in progress:
+   
+    - Implement the complete Winboard/Xboard protocol:
+      http://www.tim-mann.org/xboard/engine-intf.html
+    - Better evaluation function:
+      - more mobility evaluation
+      - Detect draws by material and likely draws by material (i.e. KR vs. KR).
+        This detection should happen in search() if possible.
+    - Full support for the PGN standard, including FEN strings
+
+
+Deferred tasks:
+   
+    - Try returning alpha or beta even with mate scores
+    - Use a bitfield for move instead of an integer
+    - Use the BigTwo1 replacement scheme in hash table:
+      http://www.xs4all.nl/~breukerd/thesis/summary.html
+    - In critical parts use <unsigned> instead of <int> if possible
+    - Scale the 7th rank eval bonus with the opponent's pawn material (the more
+      pawns it has the bigger the bonus)
+    - make_move() should return a boolean value <is_check>.
+    - Add a command stack to struct Chess so that all the waiting non-urgent
+      commands can be executed when we're done searching.
+      UPDATE: turned out that no input ever needs to wait.
+    - Evaluation masks (passed pawns etc.) should be grouped in a struct
+    - Include ECO code and round number in the PGN log
+    - Use the "struct" keyword instead of the typedef name when declaring
+      variables in header files (eg. AvlNode *book in Chess).
+    - Use a lot more enums like Color, Square, Piece, etc. On the other hand,
+      enums aren't enforced so let's drop this plan.
+    - Add a global <notation> setting. It should accept values:
+      - NTN_SAN   - use SAN notation for moves everywhere
+      - NTN_COORD - use coordinate notation everywhere
+      - NTN_MIX   - use a mix of SAN and COORD, ie. Sloppy's current defaults
+    - Don't read the game log when writing to game.pgn. Instead backtrack to the
+      beginning and play the moves again.
+    - Add (static) function prototypes at the beginning of each source file.
+    - Don't try a null move if the side to move doesn't have any sliders.
+      UPDATE: this took away a lot of strength, can't use it.
+    - In Linux/Unix the default data folder is ~/.sloppy/ and in Windows it's
+      the same folder where the executable is. User should also be able to
+      choose the folder by running sloppy with -f <path> parameter.
+    - Always completing the search iteration after the first root move takes
+      about 5 - 8 % of the total search time, which is 5.3 - 8.7 % of the
+      allocated time. So cut about 7 % out of the allocated time.
+    - Use Verified Null-Move Pruning
+    - Extend 3 plies when the search transitions into a pawn endgame
+    - Generate (QUEEN) promotions in gen_qs_moves()
+    - Try storing 2 best moves in transposition table
+    - Order losing captures last
+    - Store 2 positions in each hash entry: always replace and depth preferred
+    - Try late move reductions in pv nodes
+
+
+TODO:
+
+    - gen_pc_moves() should be able to work with a const board pointer
+    - Don't search the book if we're past X plies
+    - Don't respond to ping while searching, unless in analyze/pondering mode
+    - Support "avoid move" test positions
+    - Implement pondering mode
+    - If there's only one book move available and it has a score of 0, try to
+      avoid choosing that move in search.
+    - Use some more advanced source control system
+    - Try the hash move boldly without any validation (move generation).
+    - King safety extensions: extend all moves that significantly increase
+      pressure against the enemy king.
+    - Write a is_stalemate() function that can be called in sq_search() when
+      gen_qs_moves() creates 0 moves.
+    - Dismiss moves with a bad SEE value already in gen_qs_moves()
+    - Carefully test all the commands in input.c and xboard.c
+    - En passant captures should be handled in a cleaner way in move generation.
+      The use of ep_sq should be consistent. In <Board> it's the <to> square,
+      and in <Move> it's the square of the enemy pawn.
+    - Optimize or get rid of get_threat_mask(), at least for generating legal
+      king moves.
+    - Search all captures in QS (ignore SEE) if a double check or
+      discovered check is possible.
+    - Add support for the UCI protocol
+    - Special evals for endgames like KBNK
+    - Detect blockades in eval
+    - Get pointer arguments as constants if they're for reading only
+    - In make_move(): if the move captures a rook, make sure the opponent
+      loses castling rights in that corner. It's very unlikely that the other
+      rook would later move there without the king moving first, but
+      it's possible.
+    - Get rid of EPD test support. There are better ways to run the test suites
+      than having the engine support them.
+    - Order the root moves more carefully, perhaps based on the node counts of
+      previous searches.
+    - Write more sophisticated wrappers for the platform-dependent dynamic
+      library functions.
+
