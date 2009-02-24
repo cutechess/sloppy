@@ -178,6 +178,9 @@ xb_result(Chess *chess, const char *result)
 		winner = WHITE;
 	else if (!strcmp(result, "0-1"))
 		winner = BLACK;
+	else if (strcmp(result, "1/2-1/2"))
+		printf("Invalid result string: %s\n", result);
+	
 	/* To keep the opening book reliable, book learning is used
 	   only when Sloppy loses a game. */
 	if (winner == !chess->cpu_color)
@@ -312,9 +315,15 @@ read_xb_input(Chess *chess)
 	     the clock on each move. A time increment of 0 means that the game
 	     is played in conventional clock mode. */
 	case XBID_LEVEL:
-		tok = strtok_r(NULL, " ", &param);
+		if ((tok = strtok_r(NULL, " ", &param)) == NULL) {
+			printf("MOVES_PER_TC parameter is needed.\n");
+			break;
+		}
 		chess->nmoves_per_tc = atoi(tok);
-		tok = strtok_r(NULL, " ", &param);
+		if ((tok = strtok_r(NULL, " ", &param)) == NULL) {
+			printf("TIME_PER_TC parameter is needed.\n");
+			break;
+		}
 		if (strchr(tok, ':') == NULL)
 			chess->max_time = (atoi(tok) * 60) * 1000;
 		else {
@@ -324,7 +333,10 @@ read_xb_input(Chess *chess)
 			tok = strtok_r(NULL, " ", &tok2);
 			chess->max_time += atoi(tok) * 1000;
 		}
-		tok = strtok_r(NULL, " ", &param);
+		if ((tok = strtok_r(NULL, " ", &param)) == NULL) {
+			printf("TIME_INCREMENT parameter is needed.\n");
+			break;
+		}
 		chess->increment = atoi(tok) * 1000;
 		break;
 	/* Usage: st N
@@ -364,12 +376,16 @@ read_xb_input(Chess *chess)
 	case XBID_MOVE_NOW:
 		break;
 	case XBID_PING:
-		tok = strtok_r(NULL, " ", &param);
-		printf("pong %s\n", tok);
+		if ((tok = strtok_r(NULL, " ", &param)) == NULL)
+			printf("A ping number is needed.\n");
+		else
+			printf("pong %s\n", tok);
 		break;
 	case XBID_RESULT:
-		tok = strtok_r(NULL, " ", &param);
-		xb_result(chess, tok);
+		if ((tok = strtok_r(NULL, " ", &param)) == NULL)
+			printf("A result string is needed.\n");
+		else
+			xb_result(chess, tok);
 		break;
 	case XBID_SETBOARD:
 		if (strlen(param) == 0)
@@ -436,16 +452,24 @@ read_xb_input(Chess *chess)
 		break;
 	case XBID_EGTPATH:
 		tok = strtok_r(NULL, " ", &param);
-		if (strcmp(tok, "scorpio") != 0)
-			printf("Unknown egt type: %s\n", tok);
-		else if ((tok = strtok_r(NULL, " ", &param)) != NULL) {
-			if (settings.egbb_load_type == EGBB_OFF)
-				settings.egbb_load_type = LOAD_4MEN;
-			strlcpy(settings.egbb_path, tok, MAX_BUF);
-			if (tok[strlen(tok) - 1] != '/')
-				strlcat(settings.egbb_path, "/", MAX_BUF);
-			load_bitbases();
+		if (tok == NULL) {
+			printf("Egt type and path are needed.\n");
+			break;
 		}
+		if (strcmp(tok, "scorpio") != 0) {
+			printf("Unknown egt type: %s\n", tok);
+			break;
+		}
+		if ((tok = strtok_r(NULL, " ", &param)) == NULL) {
+			printf("Egt path is needed.\n");
+			break;
+		}
+		if (settings.egbb_load_type == EGBB_OFF)
+			settings.egbb_load_type = LOAD_4MEN;
+		strlcpy(settings.egbb_path, tok, MAX_BUF);
+		if (tok[strlen(tok) - 1] != '/')
+			strlcat(settings.egbb_path, "/", MAX_BUF);
+		load_bitbases();
 		break;
 	case XBID_MOVESTR:
 		move = str_to_move(board, cmd);
