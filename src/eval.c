@@ -88,9 +88,10 @@ typedef struct _EvalData
 
 /* If we're not using GNU C, elide __attribute__  */
 #ifndef __GNUC__
-#define  __attribute__(x)
-//#   pragma pack(1)
+  #define  __attribute__(x)
+  //#   pragma pack(1)
 #endif /* not __GNUC__ */
+
 #define PHASH_SIZE 0x8000
 typedef struct _PawnHash
 {
@@ -585,7 +586,7 @@ print_eval_log(const Board *board)
 
 /* The Static Exchange Evaluator.
    It returns the likely outcome (or evaluation) of a piece exchange
-   (or a series of them) cause by <move> (not necessarily a capture).  */
+   (or a series of them) caused by <move> (not necessarily a capture).  */
 #define MAX_CAPTURES 32
 int
 see(const Board *board, U32 move, int color)
@@ -727,7 +728,7 @@ get_distance(int sq1, int sq2)
 	return delta_file;
 }
 
-/* If true, the moving piece is a passed pawn.  */
+/* Returns true if the moving piece is a passed pawn.  */
 bool
 is_passer_move(const Board *board, U32 move)
 {
@@ -784,7 +785,7 @@ unstoppable_passer(const Board *board, int color, int sq)
 	return false;
 }
 
-/* Return true if the opposing king can't catch the pawn.  */
+/* Returns true if the opposing king can't catch the pawn.  */
 static bool
 king_passer(const Board *board, int color, int pawn_sq)
 {
@@ -1426,7 +1427,7 @@ get_attack_mask(const Board *board, int color, int *sum)
 	while (mask) {
 		sq = pop_lsb(&mask);
 		tmp = move_masks.knight[sq];
-		if (tmp & move_masks.king[board->king_sq[!color]])
+		if ((tmp & move_masks.king[board->king_sq[!color]]) != 0)
 			*sum += 3;
 		attacks |= tmp;
 	}

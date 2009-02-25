@@ -251,9 +251,9 @@ comp_hash_key(Board *board)
 		int pc;
 		U64 mask;
 
-		if (castle_rights & castling.rights[color][C_KSIDE])
+		if ((castle_rights & castling.rights[color][C_KSIDE]) != 0)
 			key ^= zobrist.castle[color][C_KSIDE];
-		if (castle_rights & castling.rights[color][C_QSIDE])
+		if ((castle_rights & castling.rights[color][C_QSIDE]) != 0)
 			key ^= zobrist.castle[color][C_QSIDE];
 
 		mask = board->pcs[color][PAWN];

@@ -268,7 +268,7 @@ init_pawn_captures(void)
 			to[0] = i - sign*7; /* forward-right/forward-left */
 			to[1] = i - sign*9; /* forward-left/forward-right */
 
-			if (sign*i > sign*sq_limit[color]) {
+			if ((sign * i) > (sign * sq_limit[color])) {
 				int j;
 				for (j = 0; j < 2; j++) {
 					int from_file = SQ_FILE(i);

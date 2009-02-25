@@ -612,7 +612,7 @@ set_squares(Board *board, const int *mailbox)
 		for (i = 0; i < 64; i++) {
 			int pc = abs(mailbox[i]);
 			board->mailbox[i] = pc;
-			if (sign*mailbox[i] > 0) {
+			if ((sign * mailbox[i]) > 0) {
 				my_pcs[pc] |= bit64[i];
 				my_pcs[ALL] |= bit64[i];
 			}
@@ -817,13 +817,13 @@ board_to_fen(const Board *board, char *fen)
 	&&  !(castle_rights & castling.all_rights[BLACK]))
 		*fen++ = '-';
 	else {
-		if (castle_rights & castling.rights[WHITE][C_KSIDE])
+		if ((castle_rights & castling.rights[WHITE][C_KSIDE]) != 0)
 			*fen++ = 'K';
-		if (castle_rights & castling.rights[WHITE][C_QSIDE])
+		if ((castle_rights & castling.rights[WHITE][C_QSIDE]) != 0)
 			*fen++ = 'Q';
-		if (castle_rights & castling.rights[BLACK][C_KSIDE])
+		if ((castle_rights & castling.rights[BLACK][C_KSIDE]) != 0)
 			*fen++ = 'k';
-		if (castle_rights & castling.rights[BLACK][C_QSIDE])
+		if ((castle_rights & castling.rights[BLACK][C_QSIDE]) != 0)
 			*fen++ = 'q';
 	}
 	*fen++ = ' ';
