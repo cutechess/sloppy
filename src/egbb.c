@@ -17,30 +17,31 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "sloppy.h"
+#include "egbb.h"
+#include "util.h"
+#include "debug.h"
+
 #ifdef WINDOWS
   #include <windows.h>
   #include <io.h>
   #include <conio.h>
-#else /* not WINDOWS */
-  #include <dlfcn.h>
-#endif /* not WINDOWS */
-#include "util.h"
-#include "debug.h"
-#include "egbb.h"
-
-#ifdef WINDOWS
+  
   #undef CDECL
   #define CDECL __cdecl
+  #define LIB_HND HMODULE
+  #define LOAD_LIB(x) LoadLibrary(x)
+  #define LOAD_LIB_SYM GetProcAddress
+  #define UNLOAD_LIB FreeLibrary
   #define EGBB_NAME "egbbdll.dll"
 #else /* not WINDOWS */
+  #include <dlfcn.h>
+  
   #define CDECL
+  #define LIB_HND void*
+  #define LOAD_LIB(x) dlopen((x), RTLD_LAZY | RTLD_LOCAL)
+  #define LOAD_LIB_SYM dlsym
+  #define UNLOAD_LIB dlclose
   #define EGBB_NAME "egbbso.so"
-  #define HMODULE void*
-  #define LoadLibrary(x) dlopen((x), RTLD_LAZY | RTLD_LOCAL)
-  #define GetProcAddress dlsym
 #endif /* not WINDOWS */
 
 
@@ -57,7 +58,7 @@ typedef void (CDECL *PLOAD_EGBB) (const char *path, int cache_size,
                                   int load_options);
 static PPROBE_EGBB probe_egbb = NULL;
 
-static HMODULE egbb_hnd = NULL;
+static LIB_HND egbb_hnd = NULL;
 static bool bitbases_loaded = false;
 
 
@@ -84,7 +85,7 @@ load_bitbases(void)
 	strlcpy(path, main_path, MAX_BUF);
 	strlcat(path, EGBB_NAME, MAX_BUF);
 
-	egbb_hnd = LoadLibrary(path);
+	egbb_hnd = LOAD_LIB(path);
 	if (!egbb_hnd) {
 		my_error("Can't load egbb library %s", path);
 		return false;
@@ -92,13 +93,13 @@ load_bitbases(void)
 
 	/* ISO C forbids these conversions of object pointer to function
 	   pointer, but it should work fine on any system Sloppy runs on.  */
-	load_egbb = (PLOAD_EGBB)GetProcAddress(egbb_hnd, "load_egbb_5men");
+	load_egbb = (PLOAD_EGBB)LOAD_LIB_SYM(egbb_hnd, "load_egbb_5men");
 	if (load_egbb == NULL) {
 		unload_bitbases();
 		my_error("Can't find bitbase load function");
 		return false;
 	}
-	probe_egbb = (PPROBE_EGBB)GetProcAddress(egbb_hnd, "probe_egbb_5men");
+	probe_egbb = (PPROBE_EGBB)LOAD_LIB_SYM(egbb_hnd, "probe_egbb_5men");
 	if (probe_egbb == NULL) {
 		unload_bitbases();
 		my_error("Can't find bitbase probe function");
@@ -117,12 +118,7 @@ unload_bitbases(void)
 	if (egbb_hnd == NULL)
 		return;
 
-#ifdef WINDOWS
-	if (!FreeLibrary(egbb_hnd))
-#else /* not WINDOWS */
-	if (dlclose(egbb_hnd))
-#endif /* not WINDOWS */
-		my_error("Can't unload bitbases");
+	UNLOAD_LIB(egbb_hnd);
 	egbb_hnd = NULL;
 	probe_egbb = NULL;
 	bitbases_loaded = false;

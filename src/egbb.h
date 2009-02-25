@@ -2,7 +2,6 @@
 #define EGBB_H
 
 #include "sloppy.h"
-#include "util.h"
 
 /* Load the endgame bitbase library.
    Returns true if successfull.  */
@@ -16,4 +15,3 @@ extern void unload_bitbases(void);
 extern int probe_bitbases(const Board *board, int ply, int depth);
 
 #endif /* EGBB_H */
-
