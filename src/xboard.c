@@ -285,7 +285,7 @@ read_xb_input(Chess *chess)
 		       " debug=0"
 		       " memory=1"
 		       " smp=0"
-		       " egt=scorpio"
+		       " egt=\"scorpio\""
 		       " done=1\n", APP_NAME, APP_VERSION);
 		break;
 	case XBID_ACCEPTED:
