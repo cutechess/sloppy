@@ -9,7 +9,7 @@
 #endif /* APP_NAME */
 
 #ifndef APP_VERSION
-#define APP_VERSION "0.2.0"
+#define APP_VERSION "0.2.2"
 #endif /* APP_VERSION */
 
 

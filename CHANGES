@@ -1,3 +1,17 @@
+Version 0.2.2 (07/09/2009):
+    - Use the XDG Base Directory Specification for configuration and
+      data file locations
+    - Configuration strings can have whitespace if they're wrapped in quotes
+    - Parallel perft works reliably on all platforms
+    - Send "done=1" as the last feature string, as required by the Xboard
+      protocol specification
+    - Support the "egtpath" command for setting the path to Scorpio bitbases
+    - Support the "memory" command for setting the hash size. The bitbases'
+      memory usage can't be controlled accurately enough, which is why "memory"
+      only affects the hash table.
+    - Better error checking for invalid Xboard commands
+    - Minor bugfixes
+
 Version 0.2.0 (02/05/2008):
     - Pawn hash table
     - Support for Scorpio's endgame bitbases
