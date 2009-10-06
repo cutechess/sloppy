@@ -1,0 +1,139 @@
+sloppy(6)
+=========
+
+NAME
+----
+sloppy - A cross-platform Xboard compatible chess engine
+
+SYNOPSIS
+--------
+*sloppy*
+
+DESCRIPTION
+-----------
+*sloppy* is a chess engine which uses the Xboard chess
+engine communication protocol.
+
+OPTIONS
+-------
+*sloppy* does not accept any options, see the CONFIGURATION section below.
+
+CONFIGURATION
+-------------
+*sloppy* looks for the configuration file in this order:
+
+* $XDG_CONFIG_HOME/sloppy/sloppy.conf
+* $HOME/.config/sloppy/sloppy.conf
+* "sloppy.conf" in the current directory
+
+The default configuration file looks like this:
+
+-------------
+# Sloppy's config file
+
+# Hash table size in megabytes
+hash = 36
+
+# Use 5-men bitbases (on/off)
+egbb_5men = off
+
+# Endgame bitbase load type (4men/5men/smart/none/off)
+# 4men: load 3-men and 4-men bitbases to RAM
+# 5men: load 3-men, 4-men and 5-men bitbases to RAM
+# smart: load a smart selection of bitbases to RAM
+# none: load nothing to RAM
+# off: disable bitbases completely
+#
+# Note: even if this option is set off, Xboard can still
+# tell Sloppy to load the bitbases with the egtpath command.
+egbb_load_type = off
+
+# Endgame bitbase cache size in megabytes
+egbb_cache = 4
+
+# Endgame bitbase path
+# Leave this empty if you want Xboard to set the path
+# egbb_path = bitbases
+
+# Book mode (disk/mem/off)
+bookmode = mem
+
+# Book learning (on/off)
+learn = off
+
+# Write logfile(s) (on/off)
+logfile = off
+
+# The number of threads Sloppy may use (currently for perft only).
+# Comment it out if you want Sloppy to autodetect the best value.
+# threads = 1
+
+# End of config file
+-------------
+
+ASCII INTERFACE COMMANDS
+------------------------
+In addition to all Xboard input, *sloppy* accepts these commands:
+
+bench::
+	Runs *sloppy*'s own benchmark.
+
+debug::
+	Toggles debugging mode.
+
+divide <depth>::
+	Perft to the given depth. Prints a node count for every move.
+
+help::
+	Shows this list of commands.
+
+perft <depth>::
+	Runs the perft test to the given depth.
+
+printboard::
+	Prints an ASCII chess board and the FEN string.
+
+printeval::
+	Prints the static evaluation.
+
+printkey::
+	Prints the hash key.
+
+printmat::
+	Prints the material each player has on the board.
+
+printmoves::
+	Prints a list of legal moves.
+
+quit::
+	Quits the program.
+
+readpgn <file>::
+	Imports the given PGN file to the book.
+
+readpgnlist <file>::
+	Imports a list of PGN files (from the given file) to the book.
+
+testpos <sec> <fen>::
+	Runs a test position (eg. WAC, WCSAC).
+
+testsee <fen> <move>::
+	Tests the Static Exchange Evaluator.
+
+testsuite <sec> <file>::
+	Runs a list of test positions from the given file.
+
+xboard::
+	Switches to Xboard/Winboard mode.
+
+AUTHOR
+------
+Written by Ilari Pihlajisto <ilari.pihlajisto@mbnet.fi>.
+
+DOCUMENTATION
+-------------
+Documentation by Ilari Pihlajisto and Arto Jonsson <ajonsson@kapsi.fi>.
+
+WWW
+---
+http://koti.mbnet.fi/~ilaripih/sloppy/
