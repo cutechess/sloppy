@@ -1,0 +1,92 @@
+.\"
+.\" Copyright (c) 2014 Ilari Pihlajisto <ilari.pihlajisto@mbnet.fi>
+.\" Copyright (c) 2014 Arto Jonsson <artoj@iki.fi>
+.\"
+.\" Sloppy is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" Sloppy is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\"
+.Dd January 10, 2014
+.Dt SLOPPY.CONF 5
+.Os
+.Sh NAME
+.Nm sloppy.conf
+.Nd Sloppy chess engine configuration file
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+.Nm
+is the configuration file for the
+.Xr sloppy 6
+chess engine.
+.Pp
+Comments can be put anywhere in the file using a hash mark
+.Pq Sq # ,
+and extend to the end of the current line.
+.Pp
+The syntax of
+.Nm
+is described below.
+.Bl -tag -width Ds
+.It Ic hash = Ar size
+Hash table size in megabytes.
+The default is 36.
+.It Ic egbb_5men = on | off
+Use 5-men bitbases.
+The default is off.
+.It Ic egbb_load_type = 4men | 5men | smart | none | off
+Endgame bitbase load type.
+.Pp
+.Bl -tag -width "XXXXXX" -offset indent -compact
+.It 4men
+Load 3-men and 4-men bitbases to RAM.
+.It 5men
+Load 3-men, 4-men and 5-men bitbases to RAM.
+.It smart
+Load a smart selection of bitbases to RAM.
+.It none
+Load nothing to RAM.
+.It off
+Disable bitbases completely (default).
+.El
+.Pp
+Note: even if this option is set off, Xboard can still load the bitbases
+with the egtpath command.
+.It Ic egbb_cache = Ar size
+Endgame bitbase cache size in megabytes.
+The default is 4.
+.It Ic egbb_path = Ar path
+Endgame bitbase path.
+Leave this empty if you want Xboard to set the path.
+.It Ic bookmode = disk | mem | off
+Book mode.
+The default is mem.
+.It Ic learn = on | off
+Book learning.
+The default is off.
+.It Ic logfile = on | off
+Write logfile(s).
+The default is off.
+.It Ic threads = Ar count
+The number of threads to use.
+Currently for perft only.
+The default is to autodetect the best value.
+.El
+.Sh FILES
+.Bl -tag -width $XDG_CONFIG_HOME/sloppy/sloppy.conf -compact
+.It Pa $XDG_CONFIG_HOME/sloppy/sloppy.conf
+.It Pa ~/.config/sloppy/sloppy.conf
+.It Pa sloppy.conf
+.El
+.Sh SEE ALSO
+.Xr sloppy 6

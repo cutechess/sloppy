@@ -1,0 +1,91 @@
+.\"
+.\" Copyright (c) 2014 Ilari Pihlajisto <ilari.pihlajisto@mbnet.fi>
+.\" Copyright (c) 2014 Arto Jonsson <artoj@iki.fi>
+.\"
+.\" Sloppy is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" Sloppy is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\"
+.Dd January 10, 2014
+.Dt SLOPPY 6
+.Os
+.Sh NAME
+.Nm sloppy
+.Nd Xboard compatible chess engine
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+.Nm
+is a chess engine that uses the Xboard chess engine communication protocol version 2.
+A graphical user interface (GUI) is recommended but not required to play.
+.Pp
+.Nm
+does not accept any options but is instead configured using a configuration file.
+See
+.Xr sloppy.conf 5
+for more information.
+.Sh COMMANDS
+In addition to all Xboard input,
+.Nm
+accepts the following input commands:
+.Bl -tag -width Ds
+.It Ic bench
+Run internal benchmark.
+.It Ic debug
+Toggles debugging mode.
+.It Ic divide Ar depth
+Perft to the given
+.Ar depth .
+Prints a node count for every mode.
+.It Ic help
+Show list of available commands.
+.It Ic perft Ar depth
+Runs the perft test to the given
+.Ar depth .
+.It Ic printboard
+Prints a text representation of the chess board and the FEN string.
+.It Ic printeval
+Prints the static evaluation.
+.It Ic printkey
+Prints the hash key.
+.It Ic printmat
+Prints the material each player has on the board.
+.It Ic printmoves
+Prints a list of legal moves.
+.It Ic quit
+Quits the program.
+.It Ic readpgn Ar file
+Imports the given PGN
+.Ar file
+to the book.
+.It Ic readpgnlist Ar file
+Imports a list of PGN files from the given
+.Ar file
+to the book.
+.It Ic test Ar sec Ar fen
+Runs a test position (e.g. WAC, WCSAC).
+.It Ic testsee Ar fen Ar move
+Tests the static exchange evaluator.
+.It Ic testsuite Ar sec Ar file
+Runs a list of test positions from the given
+.Ar file .
+.It Ic xboard
+Switches to Xboard / Winboard mode.
+.El
+.Sh SEE ALSO
+.Xr sloppy.conf 5
+.Sh AUTHORS
+.Nm
+was written by
+.An Ilari Pihlajisto ,
+.Mt ilari.pihlajisto@mbnet.fi .
