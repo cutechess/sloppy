@@ -1,7 +1,7 @@
 # Unix/Linux Makefile for Sloppy
 
 # set up compiler and options
-CC = gcc
+CC = cc
 CFLAGS = -O3 -pipe -mtune=generic
 LDFLAGS = -lpthread -ldl
 EXECUTABLE = sloppy
