@@ -23,12 +23,13 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <time.h>
-#include <sys/timeb.h>
 #include "sloppy.h"
 #ifdef WINDOWS
 #include <windows.h>
+#include <sys/timeb.h>
 #else /* not WINDOWS */
 #include <unistd.h>
+#include <sys/time.h>
 #endif /* not WINDOWS */
 #include "debug.h"
 #include "notation.h"
@@ -371,10 +372,17 @@ my_srand(int new_seed)
 S64
 get_ms(void)
 {
+#ifdef WINDOWS
 	struct timeb time_buf;
 	ftime(&time_buf);
 
 	return ((S64)time_buf.time * 1000) + time_buf.millitm;
+#else /* not WINDOWS */
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+
+	return ((S64)tv.tv_sec * 1000) + tv.tv_usec / 1000;
+#endif /* not WINDOWS */
 }
 
 /* Display an ASCII progressbar in position <i> with <nsteps> steps.  */
