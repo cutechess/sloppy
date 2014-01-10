@@ -6,9 +6,8 @@ CFLAGS = -O3 -pipe
 LDFLAGS = 
 EXECUTABLE = sloppy.exe
 
-NAME = Sloppy
 DEBUGLEVEL = 1
-DEFS = -DAPP_NAME='"$(NAME)"' -DDEBUG_LEVEL=$(DEBUGLEVEL) -DUSE_THREADS
+DEFS = -DDEBUG_LEVEL=$(DEBUGLEVEL) -DUSE_THREADS
 
 OBJS = avltree.o bench.o chess.o debug.o egbb.o eval.o hash.o main.o \
        notation.o game.o input.o makemove.o pgn.o book.o magicmoves.o \
