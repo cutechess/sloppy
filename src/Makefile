@@ -2,7 +2,7 @@
 
 # set up compiler and options
 CC = cc
-CFLAGS = -O3 -pipe -mtune=generic
+CFLAGS = -O3 -pipe -mtune=generic -Wall -pedantic
 LDFLAGS = -lpthread -ldl
 EXECUTABLE = sloppy
 GIT_REV = $(shell git rev-parse --short HEAD)
@@ -15,7 +15,7 @@ OBJS = avltree.o bench.o chess.o debug.o egbb.o eval.o hash.o main.o \
        movegen.o perft.o search.o thread.o util.o xboard.o
 
 .c.o:
-	$(CC) -std=gnu99 -c -Wall -pedantic $(CFLAGS) $< $(DEFS)
+	$(CC) -std=gnu99 -c $(CFLAGS) $< $(DEFS)
 
 all: $(OBJS)
 	$(CC) $(OBJS) -o $(EXECUTABLE) $(LDFLAGS)
