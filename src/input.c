@@ -316,6 +316,7 @@ read_input(Chess *chess)
 	char *cmd;
 	char *param = NULL;
 	SloppyCmd *slcmd;
+	int ret;
 
 	ASSERT(1, chess != NULL);
 
@@ -330,8 +331,8 @@ read_input(Chess *chess)
 				printf("Black(%d): ", nmoves);
 		}		
 		/* Read input.  */
-		if (fgetline(last_input, MAX_BUF, stdin) < 1)
-			return 0;
+		if ((ret = fgetline(last_input, MAX_BUF, stdin)) < 1)
+			return ret;
 		ninput++;
 	}
 	ninput--;
