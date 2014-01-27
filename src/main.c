@@ -184,10 +184,6 @@ initialize(Chess *chess)
 #endif /* WINDOWS */
 
 	printf("%s %s by Ilari Pihlajisto\n\n", APP_NAME, APP_VERSION);
-#ifdef GIT_REV
-	if (strlen(GIT_REV) > 0)
-		printf("Git revision: %s\n", GIT_REV);
-#endif /* GIT_VERSION */
 	printf("Build date: %s\n", __DATE__);
 	printf("Debugging level: %d\n", DEBUG_LEVEL);
 #if defined(__LP64__) || defined(__powerpc64__) || defined(_WIN64)
