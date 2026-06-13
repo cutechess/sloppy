@@ -162,8 +162,6 @@ fatal_error(const char *format, ...)
 	va_list ap;
 	char error_msg[MAX_BUF];
 
-	ASSERT(1, format != NULL);
-
 	va_start(ap, format);
 	vsnprintf(error_msg, MAX_BUF, format, ap);
 	va_end(ap);

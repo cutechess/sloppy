@@ -1599,15 +1599,10 @@ eval_pawns(const Board *board, EvalData *ed)
 static void
 eval_pieces(const Board *board, int color, EvalData *ed)
 {
-	int *op;
-	int *eg;
 	U64 mask;
 	
 	ASSERT(2, board != NULL);
 	ASSERT(2, ed != NULL);
-	
-	op = &ed->op;
-	eg = &ed->eg;
 	
 	mask = board->pcs[color][KNIGHT];
 	while (mask)

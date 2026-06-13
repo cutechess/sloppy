@@ -462,7 +462,6 @@ search(Chess *chess, int alpha, int beta, int depth, bool in_pv, PvLine *pv)
 	int ply;
 	int best_val = -VAL_INF;
 	int fut_score = VAL_INF;
-	U32 hash_move;
 
 	ASSERT(2, chess != NULL);
 	ASSERT(2, alpha >= -VAL_INF);
@@ -557,7 +556,6 @@ search(Chess *chess, int alpha, int beta, int depth, bool in_pv, PvLine *pv)
 	score_moves(board, best_move, ply, &move_list);
 
 	orig_alpha = alpha;
-	hash_move = best_move;
 
 	for (i = 0; i < move_list.nmoves; i++) {
 		bool reduced;
@@ -867,7 +865,6 @@ id_search(Chess *chess, U32 test_move)
 	U32 move = NULLMOVE;
 	int val = 0;
 	int depth;
-	int last_depth = 0;
 	int last_score = 0;
 	U64 last_nnodes = 0;
 	U64 total_nnodes = 0;
@@ -899,7 +896,6 @@ id_search(Chess *chess, U32 test_move)
 			break;
 		last_nnodes = total_nnodes;
 		last_score = val;
-		last_depth = depth;
 		total_nnodes += sd->nnodes;
 		if (chess->show_pv && depth > 1) {
 			U64 nall_nodes = total_nnodes + total_nqs_nodes;

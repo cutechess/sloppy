@@ -57,12 +57,15 @@ test_pos(Chess *chess, const char *pos)
 	   By doing that we'll also get to the end of the FEN string.  */
 	if ((pos_item = strstr(tmp_pos, " bm ")) != NULL)
 		find_best = true;
-	else if ((pos_item = strstr(tmp_pos, " am ")) != NULL) {
+	else if ((pos_item = strstr(tmp_pos, " am ")) != NULL)
 		find_best = false;
+	else
+		return -1;
+
+	if (!find_best) {
 		my_error("'Avoid move' positions not currently allowed");
 		return -1;
-	} else
-		return -1;
+	}
 
 	*pos_item = 0; /* end of FEN string */
 	pos_item += 4; /* best move or move to avoid */

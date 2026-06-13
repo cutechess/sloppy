@@ -418,7 +418,7 @@ book_learn(const Board *board, int winner, AvlNode **tree)
 		
 		if (board->pos[i].key == 0 || i > 26)
 			continue;
-		if (!(i % 2) == winner)
+		if ((!(i % 2)) == winner)
 			points = 2;
 		else
 			points = 0;
