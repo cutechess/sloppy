@@ -482,7 +482,7 @@ fix_endian_u64(U64 val)
 }
 
 
-#if defined(__GNUC__) && (defined(__LP64__) || defined(__powerpc64__))
+#if defined(__GNUC__) && (defined(__x86_64__) || defined(__amd64__))
 
 /* Locates the first (least significant) "one" bit in a bitboard.
    Optimized for x86-64.  */
@@ -499,7 +499,7 @@ get_lsb(U64 b)
 	return (int)ret;
 }
 
-#else /* not 64-bit GNUC */
+#else /* not x86-64 GNUC */
 
 /* Locates the first (least significant) "one" bit in a bitboard.
    Optimized for x86.  */
@@ -525,7 +525,7 @@ get_lsb(U64 b)
 	return lsb_table[((a & -(int)a) * 0xe89b2be) >> 27]  +  32;
 }
 
-#endif /* not 64-bit GNUC */
+#endif /* not x86-64 GNUC */
 
 
 #if defined(__LP64__) || defined(__powerpc64__) || defined(_WIN64)
@@ -591,7 +591,7 @@ pop_lsb(U64 *b)
 	return lsb;
 }
 
-#if defined(WINDOWS) || defined(__GNUC__)
+#ifdef SLOPPY_PROVIDE_STRLCPY
 
 /* A replacement for strncpy().
    Uses NUL termination even when the string has to be truncated.  */
@@ -642,7 +642,7 @@ strlcat(char *dst, const char *src, size_t size) {
 	return (dstlen + (srcptr - src));
 }
 
-#endif /* defined(WINDOWS) || defined(__GNUC__) */
+#endif /* SLOPPY_PROVIDE_STRLCPY */
 
 
 #ifdef WINDOWS

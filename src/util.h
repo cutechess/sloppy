@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include <stdio.h>
+#include <string.h>
 #include "sloppy.h"
 
 
@@ -138,7 +139,17 @@ extern int pop_lsb(U64 *b);
 /* Returns the number of "one" bits in a 64-bit word.  */
 extern int popcount(U64 b);
 
-#if defined(WINDOWS) || defined(__GNUC__)
+/* strlcpy() and strlcat() are native on BSD-derived systems (including macOS),
+   but missing on Windows and on glibc before 2.38, where we supply our own.
+   Note that __GNUC__ alone is too broad: Clang defines it on macOS too.  */
+#if defined(WINDOWS) || (defined(__GNUC__) \
+	&& !defined(__APPLE__) && !defined(__FreeBSD__) \
+	&& !defined(__NetBSD__) && !defined(__OpenBSD__) \
+	&& !defined(__DragonFly__))
+#define SLOPPY_PROVIDE_STRLCPY
+#endif
+
+#ifdef SLOPPY_PROVIDE_STRLCPY
 /* A replacement for strncpy().
    Uses NUL termination even when the string has to be truncated.  */
 extern size_t strlcpy(char *dst, const char *src, size_t size);
@@ -146,7 +157,7 @@ extern size_t strlcpy(char *dst, const char *src, size_t size);
 /* A replacement for strncat().
    <size> is the size of <dst>, not space left.  */
 extern size_t strlcat(char *dst, const char *src, size_t size);
-#endif /* defined(WINDOWS) || defined(__GNUC__) */
+#endif /* SLOPPY_PROVIDE_STRLCPY */
 
 #ifdef WINDOWS
 /* A reentrant version of <strtok>.  */
