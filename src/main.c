@@ -53,16 +53,9 @@ set_config_option(const char *opt_name, const char *opt_val)
 		else
 			my_error("config: invalid egbb_5men type: %s", opt_val);
 	} else if (strcmp(opt_name, "egbb_load_type") == 0) {
-		if (strcmp(opt_val, "4men") == 0)
-			settings.egbb_load_type = LOAD_4MEN;
-		else if (strcmp(opt_val, "5men") == 0)
-			settings.egbb_load_type = LOAD_5MEN;
-		else if (strcmp(opt_val, "smart") == 0)
-			settings.egbb_load_type = SMART_LOAD;
-		else if (strcmp(opt_val, "none") == 0)
-			settings.egbb_load_type = LOAD_NONE;
-		else if (strcmp(opt_val, "off") == 0)
-			settings.egbb_load_type = EGBB_OFF;
+		int load_type = parse_egbb_load_type(opt_val);
+		if (load_type != -1)
+			settings.egbb_load_type = (EgbbLoadType)load_type;
 		else
 			my_error("config: invalid egbb load type: %s", opt_val);
 	} else if (strcmp(opt_name, "egbb_cache") == 0) {
@@ -81,12 +74,7 @@ set_config_option(const char *opt_name, const char *opt_val)
 		else
 			my_error("config: invalid book mode: %s", opt_val);
 	} else if (strcmp(opt_name, "egbb_path") == 0) {
-		int len = strlen(opt_val);
-		if (len > 0) {
-			strlcpy(settings.egbb_path, opt_val, MAX_BUF);
-			if (opt_val[len - 1] != '/')
-				strlcat(settings.egbb_path, "/", MAX_BUF);
-		}
+		set_egbb_path(opt_val);
 	} else if (strcmp(opt_name, "learn") == 0) {
 		if (strcmp(opt_val, "on") == 0)
 			settings.use_learning = true;
@@ -178,7 +166,6 @@ parse_config_file(const char *filename)
 static void
 initialize(Chess *chess)
 {
-	unsigned long hsize;
 #ifndef WINDOWS
 	char *env;
 #endif /* WINDOWS */
@@ -268,28 +255,12 @@ initialize(Chess *chess)
 			printf("5-men egbbs enabled (if available)\n");
 		else
 			printf("5-men egbbs disabled\n");
-		switch (settings.egbb_load_type) {
-		case LOAD_4MEN:
-			printf("Egbb load type: 4-men\n");
-			break;
-		case LOAD_5MEN:
-			printf("Egbb load type: 5-men\n");
-			break;
-		case SMART_LOAD:
-			printf("Egbb load type: smart\n");
-			break;
-		case LOAD_NONE:
-			printf("Egbb load type: none\n");
-			break;
-		default:
-			my_error("Invalid egbb load type");
-			break;
-		}
+		printf("Egbb load type: %s\n",
+		       egbb_load_type_str(settings.egbb_load_type));
 	} else
 		printf("Endgame bitbases disabled\n");
 
-	hsize = (sizeof(Hash) * settings.hash_size) / 0x100000;
-	printf("Hash table size: %lu MB\n", hsize);
+	printf("Hash table size: %lu MB\n", get_hash_size_mb());
 
 	printf("...Done\n\n");
 	printf("Type \"help\" to display a list of commands\n");

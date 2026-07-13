@@ -45,9 +45,21 @@ typedef struct _Hash
 extern Zobrist zobrist;
 
 
+/* Hash table size limits (in megabytes) for the Xboard "memory"
+   command and the UCI "Hash" option.  */
+#define HASH_SIZE_MIN_MB 8
+#define HASH_SIZE_MAX_MB 1024
+
 /* Set a new hash table size (in megabytes),
    and deallocate the old table (if any).  */
 extern void set_hash_size(int hsize);
+
+/* Resize and clear the hash table.
+   Returns false if <mbytes> is outside the valid range.  */
+extern bool resize_hash_table_mb(int mbytes);
+
+/* The current hash table size in megabytes.  */
+extern unsigned long get_hash_size_mb(void);
 
 /* Initialize the hash table.  */
 extern void init_hash(void);

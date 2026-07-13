@@ -157,7 +157,7 @@ test_suite(Chess *chess, const char *filename)
 	sd_total.bfactor /= nsolved + nfailed;
 	timer = get_ms() - timer;
 	printf("\n");
-	print_search_data(&sd_total, (int)timer);
+	print_search_data(&sd_total, (int)timer, "");
 	printf("\n%d of %d tests were solved.\n", nsolved, nsolved + nfailed);
 }
 

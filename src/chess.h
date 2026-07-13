@@ -2,6 +2,7 @@
 #define CHESS_H
 
 #include "sloppy.h"
+#include "movegen.h"
 
 struct _AvlNode;
 
@@ -10,11 +11,16 @@ struct _AvlNode;
    depth, which can't of course be greater than this limit.  */
 #define MAX_PLY 128
 
+/* Maximum search depth to use when the user or the protocol
+   hasn't set one.  */
+#define DEFAULT_MAX_DEPTH 64
+
 
 typedef enum _Protocol
 {
 	PROTO_NONE,		/* Sloppy's own protocol */
 	PROTO_XBOARD,
+	PROTO_UCI,
 	PROTO_ERROR
 } Protocol;
 
@@ -45,6 +51,8 @@ typedef struct _SearchData
 	int root_ply;		/* num. of moves played before the search */
 	U64 nnodes;		/* num. of main nodes searched */
 	U64 nqs_nodes;		/* num. of quiescence nodes searched */
+	U64 nnodes_prior_iters;	/* num. of nodes (main and quiescence)
+				   searched in the completed iterations */
 	U64 nhash_hits;		/* num. of hash hits */
 	U64 nhash_probes;	/* num. of hash probes */
 	S64 t_start;		/* time at the beginning of search */
@@ -67,9 +75,19 @@ typedef struct _Chess
 	int cpu_color;		/* Sloppy's side (WHITE or BLACK) */
 	int max_depth;		/* maximum search depth */
 	int max_time;		/* total time (ms) per time control */
+	U64 max_nodes;		/* node limit for the search; a zeroed limit
+				   means the node count is unlimited */
 	S64 tc_end;		/* timestamp for when time per tc is up */
 	int increment;		/* time increment (ms) for each move */
 	int nmoves_per_tc;	/* no. of moves per time control */
+	int nmoves_left_in_tc;	/* moves left until the next time control;
+				   zeroed when unknown or when the whole game
+				   is played in one control (UCI only) */
+	bool infinite_search;	/* search until told to stop (UCI only) */
+	bool no_time_limit;	/* the search has no time budget, it's limited
+				   only by depth or node count (UCI only) */
+	MoveLst searchmoves;	/* if not empty, the root moves to which the
+				   search is restricted (UCI only) */
 	char op_name[MAX_BUF];	/* Sloppy's opponent's name */
 	bool in_book;		/* Sloppy's last move was from the book */
 	bool debug;		/* we're in debug mode */
@@ -83,8 +101,11 @@ extern void init_search_data(SearchData *sd);
 
 extern void init_chess(Chess *chess);
 
-/* Print some details about the last search.  */
-extern void print_search_data(const SearchData *sd, int t_elapsed);
+/* Print some details about the last search. Each output line begins
+   with <line_prefix>, which lets UCI mode wrap the lines in
+   "info string ".  */
+extern void print_search_data(const SearchData *sd, int t_elapsed,
+                              const char *line_prefix);
 
 #endif /* CHESS_H */
 

@@ -127,9 +127,9 @@ static XbCmd
 	int i;
 	char *cmd;
 	char *param;
-	char line[MAX_BUF];
+	char line[MAX_INPUT_BUF];
 	
-	strlcpy(line, last_input, MAX_BUF);
+	strlcpy(line, last_input, MAX_INPUT_BUF);
 	cmd = strtok_r(line, " ", &param);
 	
 	for (i = 0; i <= XBID_ANALYZE_UPDATE; i++) {
@@ -224,7 +224,7 @@ int
 read_xb_input(Chess *chess)
 {
 	Board *board;
-	char line[MAX_BUF];
+	char line[MAX_INPUT_BUF];
 	char *cmd;
 	char *param = NULL;
 	XbCmd *xbcmd;
@@ -233,7 +233,7 @@ read_xb_input(Chess *chess)
 
 	board = &chess->board;
 	
-	strlcpy(line, last_input, MAX_BUF);
+	strlcpy(line, last_input, MAX_INPUT_BUF);
 	cmd = strtok_r(line, " ", &param);
 
 	xbcmd = get_xbcmd();
@@ -443,12 +443,9 @@ read_xb_input(Chess *chess)
 		break;
 	case XBID_MEMORY:
 		memory = atoi(param);
-		if (memory < 8 || memory > 1024)
-			printf("Hash size must be between 8 and 1024 MB.\n");
-		else {
-			set_hash_size(memory);
-			init_hash();
-		}
+		if (!resize_hash_table_mb(memory))
+			printf("Hash size must be between %d and %d MB.\n",
+			       HASH_SIZE_MIN_MB, HASH_SIZE_MAX_MB);
 		break;
 	case XBID_EGTPATH:
 		tok = strtok_r(NULL, " ", &param);
@@ -464,12 +461,7 @@ read_xb_input(Chess *chess)
 			printf("Egt path is needed.\n");
 			break;
 		}
-		if (settings.egbb_load_type == EGBB_OFF)
-			settings.egbb_load_type = LOAD_4MEN;
-		strlcpy(settings.egbb_path, tok, MAX_BUF);
-		if (tok[strlen(tok) - 1] != '/')
-			strlcat(settings.egbb_path, "/", MAX_BUF);
-		load_bitbases();
+		activate_egbb_path(tok);
 		break;
 	case XBID_MOVESTR:
 		move = str_to_move(board, cmd);

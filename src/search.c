@@ -63,6 +63,7 @@ static U32 killer[MAX_PLY][2];
 
 /* Static function prototypes.  */
 static int search(Chess *chess, int alpha, int beta, int depth, bool in_pv, PvLine *pv);
+static void check_node_limit(Chess *chess);
 
 
 /* Get the next best (highest move ordering score) move from a list.  */
@@ -234,6 +235,12 @@ qs_search(Chess *chess, int alpha, int beta, int depth)
 	
 	board = &chess->sboard;
 	(chess->sd.nqs_nodes)++;
+	check_node_limit(chess);
+	/* Unwind right away when the node budget runs out mid-quiescence:
+	   the whole iteration gets discarded anyway. Searches without a
+	   node limit are not affected.  */
+	if (chess->max_nodes != 0 && chess->sd.stop_search)
+		return 0;
 
 	if (beta > VAL_DRAW && !can_win(board)) {
 		if (alpha >= VAL_DRAW)
@@ -407,6 +414,24 @@ iid(Chess *chess, int alpha, int beta, int depth)
 	return get_hash_move(chess->sboard.posp->key);
 }
 
+/* Stop the search as soon as its node budget is exhausted.
+   Called every time a node counter is incremented, so it must stay
+   cheap for the searches that have no node limit.  */
+static void
+check_node_limit(Chess *chess)
+{
+	SearchData *sd;
+
+	ASSERT(2, chess != NULL);
+
+	if (chess->max_nodes == 0)
+		return;
+	sd = &chess->sd;
+	if (sd->nnodes_prior_iters + sd->nnodes + sd->nqs_nodes
+	    >= chess->max_nodes)
+		sd->stop_search = true;
+}
+
 /* Check for new input or timeup.  */
 static bool
 cancel_or_timeout(Chess *chess)
@@ -478,6 +503,9 @@ search(Chess *chess, int alpha, int beta, int depth, bool in_pv, PvLine *pv)
 	}
 
 	(sd->nnodes)++;
+	check_node_limit(chess);
+	if (sd->stop_search)
+		return VAL_NONE;
 	if (sd->nnodes % 0x400 == 0 && cancel_or_timeout(chess))
 		return VAL_NONE;
 
@@ -645,6 +673,50 @@ search(Chess *chess, int alpha, int beta, int depth, bool in_pv, PvLine *pv)
 	return alpha;
 }
 
+/* Returns true if <move> plays the same from and to squares and the
+   same promotion as any move in <allowed>.  */
+static bool
+move_in_list(U32 move, const MoveLst *allowed)
+{
+	int i;
+
+	ASSERT(2, allowed != NULL);
+
+	for (i = 0; i < allowed->nmoves; i++) {
+		U32 allowed_move = allowed->move[i];
+		if (GET_FROM(allowed_move) == GET_FROM(move)
+		&&  GET_TO(allowed_move) == GET_TO(move)
+		&&  GET_PROM(allowed_move) == GET_PROM(move))
+			return true;
+	}
+
+	return false;
+}
+
+/* Restrict a root move list to the moves in <allowed>, which the UCI
+   "go searchmoves" command asks for.  */
+static void
+filter_root_moves(MoveLst *move_list, const MoveLst *allowed)
+{
+	int i;
+	int nkept = 0;
+
+	ASSERT(1, move_list != NULL);
+	ASSERT(1, allowed != NULL);
+
+	for (i = 0; i < move_list->nmoves; i++) {
+		if (move_in_list(move_list->move[i], allowed))
+			move_list->move[nkept++] = move_list->move[i];
+	}
+	/* The allowed moves were all verified to be legal in this position
+	   when the command was parsed, so the filter can't really produce
+	   an empty list. Should that somehow happen anyway, searching all
+	   the moves beats searching nothing.  */
+	ASSERT(1, nkept > 0);
+	if (nkept > 0)
+		move_list->nmoves = nkept;
+}
+
 static int
 search_root(Chess *chess, int depth, U32 *movep)
 {
@@ -686,6 +758,8 @@ search_root(Chess *chess, int depth, U32 *movep)
 	}
 
 	gen_moves(board, &move_list);
+	if (chess->searchmoves.nmoves > 0)
+		filter_root_moves(&move_list, &chess->searchmoves);
 	sd->nmoves = move_list.nmoves;
 	score_moves(board, best_move, 0, &move_list);
 
@@ -718,8 +792,14 @@ search_root(Chess *chess, int depth, U32 *movep)
 			store_hash(depth, val_to_hash(alpha, 0), H_BETA,
 			           key, best_move, sd->root_ply);
 		}
-		if (sd->stop_search)
+		if (sd->stop_search) {
+			/* A stop before even one root move has been fully
+			   searched would leave the engine without a move to
+			   play, so the highest-ranked legal move is used.  */
+			if (*movep == NULLMOVE)
+				*movep = move_list.move[0];
 			return VAL_NONE;
+		}
 
 		ASSERT(1, val < beta);
 		if (val > alpha) {
@@ -775,13 +855,31 @@ print_pv(const Chess *chess, int depth, int score, U64 nnodes)
 	} else if (chess->protocol == PROTO_XBOARD) {
 		int csec = t_elapsed / 10;
 		printf("%d %d %d %" PRIu64, depth, score, csec, nnodes);
+	} else if (chess->protocol == PROTO_UCI) {
+		printf("info depth %d score ", depth);
+		if (is_mate_score(score)) {
+			/* Convert the mate score into full moves until mate,
+			   negative if it's Sloppy that gets mated.  */
+			int mate_in;
+			if (score > 0)
+				mate_in = (VAL_MATE - score + 1) / 2;
+			else
+				mate_in = -((VAL_MATE + score + 1) / 2);
+			printf("mate %d", mate_in);
+		} else
+			printf("cp %d", score);
+		printf(" time %d nodes %" PRIu64, t_elapsed, nnodes);
+		if (t_elapsed > 0)
+			printf(" nps %" PRIu64,
+			       (nnodes * 1000) / (U64)t_elapsed);
+		printf(" pv");
 	}
-	
+
 	copy_board(&tmp_board, &chess->board);
 	for (i = 0; i < depth; i++) {
 		U32 move;
-		char san_move[MAX_BUF];
-		
+		char str_move[MAX_BUF];
+
 		if (i < pv->nmoves)
 			move = pv->moves[i];
 		else
@@ -795,8 +893,12 @@ print_pv(const Chess *chess, int depth, int score, U64 nnodes)
 		if (!move)
 			break;
 
-		move_to_san(san_move, &tmp_board, move);
-		printf(" %s", san_move);
+		/* UCI uses coordinate notation, the other protocols SAN.  */
+		if (chess->protocol == PROTO_UCI)
+			move_to_str(move, str_move);
+		else
+			move_to_san(str_move, &tmp_board, move);
+		printf(" %s", str_move);
 
 		make_move(&tmp_board, move);
 	}
@@ -823,9 +925,10 @@ allocate_time(Chess *chess)
 	if (tc_end < 0)
 		tc_end = 0;
 
-	/* In analyze mode there is no time limit, so we'll just
-	   use an insanely big value to fake it.  */
-	if (chess->analyze) {
+	/* In analyze mode, in an infinite search, and in a search that's
+	   limited only by depth or node count there is no time limit, so
+	   we'll just use an insanely big value to fake it.  */
+	if (chess->analyze || chess->infinite_search || chess->no_time_limit) {
 		sd->deadline = INT64_MAX;
 		sd->strict_deadline = INT64_MAX;
 		return;
@@ -833,7 +936,12 @@ allocate_time(Chess *chess)
 	
 	if (tc_end > 0)
 		time_left = (int)(tc_end - sd->t_start);
-	if (chess->nmoves_per_tc > 0) {
+	/* The UCI protocol reports directly how many moves are left in the
+	   time control, while in the Xboard protocol it has to be derived
+	   from the move count of the game.  */
+	if (chess->nmoves_left_in_tc > 0)
+		limit = time_left / chess->nmoves_left_in_tc;
+	else if (chess->nmoves_per_tc > 0) {
 		int nmoves;
 		nmoves = (chess->board.nmoves / 2) % chess->nmoves_per_tc;
 		nmoves = chess->nmoves_per_tc - nmoves;
@@ -888,6 +996,7 @@ id_search(Chess *chess, U32 test_move)
 	init_killers();
 	for (depth = 1; depth <= chess->max_depth; depth++) {
 		sd->ply = depth;
+		sd->nnodes_prior_iters = total_nnodes + total_nqs_nodes;
 		val = search_root(chess, depth, &move);
 		total_nqs_nodes += sd->nqs_nodes;
 		nhash_probes += sd->nhash_probes;
@@ -897,7 +1006,9 @@ id_search(Chess *chess, U32 test_move)
 		last_nnodes = total_nnodes;
 		last_score = val;
 		total_nnodes += sd->nnodes;
-		if (chess->show_pv && depth > 1) {
+		/* UCI GUIs expect an "info" line for every completed
+		   iteration, including the first one.  */
+		if (chess->show_pv && (depth > 1 || chess->protocol == PROTO_UCI)) {
 			U64 nall_nodes = total_nnodes + total_nqs_nodes;
 			print_pv(chess, depth, val, nall_nodes);
 		}

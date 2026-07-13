@@ -37,6 +37,7 @@ init_search_data(SearchData *sd)
 	sd->nmoves_left = 0;
 	sd->nnodes = 0;
 	sd->nqs_nodes = 0;
+	sd->nnodes_prior_iters = 0;
 	sd->nhash_hits = 0;
 	sd->nhash_probes = 0;
 	sd->t_start = 0;
@@ -54,11 +55,16 @@ init_chess(Chess *chess)
 	chess->book = NULL;
 	chess->protocol = PROTO_NONE;
 	chess->cpu_color = COLOR_NONE;
-	chess->max_depth = 64;
+	chess->max_depth = DEFAULT_MAX_DEPTH;
 	chess->max_time = 0;
+	chess->max_nodes = 0;
 	chess->tc_end = 0;
 	chess->increment = 0;
 	chess->nmoves_per_tc = 0;
+	chess->nmoves_left_in_tc = 0;
+	chess->infinite_search = false;
+	chess->no_time_limit = false;
+	chess->searchmoves.nmoves = 0;
 	strlcpy(chess->op_name, "", MAX_BUF);
 	chess->in_book = false;
 	chess->debug = false;
@@ -69,25 +75,31 @@ init_chess(Chess *chess)
 
 /* Print some details about the last search.  */
 void
-print_search_data(const SearchData *sd, int t_elapsed)
+print_search_data(const SearchData *sd, int t_elapsed,
+                  const char *line_prefix)
 {
 	double hhit_rate;
 	U64 nnodes;
-	
+
 	ASSERT(1, sd != NULL);
-	
+	ASSERT(1, line_prefix != NULL);
+
 	hhit_rate = (double)sd->nhash_hits / (double)sd->nhash_probes;
 	nnodes = sd->nnodes + sd->nqs_nodes;
 
 	if (t_elapsed > 0) {
 		double sec_elapsed = (double)t_elapsed / 1000.0;
 		int nps = (int)((double)nnodes / sec_elapsed);
-		printf("Time elapsed: %.2f seconds.\n", sec_elapsed);
-		printf("Total nodes per second: %d\n", nps);
+		printf("%sTime elapsed: %.2f seconds.\n",
+		       line_prefix, sec_elapsed);
+		printf("%sTotal nodes per second: %d\n", line_prefix, nps);
 	}
-	printf("Main nodes searched: %" PRIu64 "\n", sd->nnodes);
-	printf("Quiescence nodes searched: %" PRIu64 "\n", sd->nqs_nodes);
-	printf("Hash table hit rate: %.2f%%\n", hhit_rate * 100.0);
-	printf("Branching factor: %.2f\n", sd->bfactor);
+	printf("%sMain nodes searched: %" PRIu64 "\n",
+	       line_prefix, sd->nnodes);
+	printf("%sQuiescence nodes searched: %" PRIu64 "\n",
+	       line_prefix, sd->nqs_nodes);
+	printf("%sHash table hit rate: %.2f%%\n",
+	       line_prefix, hhit_rate * 100.0);
+	printf("%sBranching factor: %.2f\n", line_prefix, sd->bfactor);
 }
 

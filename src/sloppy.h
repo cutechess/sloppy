@@ -28,6 +28,7 @@
 
 #define PRIu64 "I64u"
 #define PRIx64 "I64x"
+#define SCNu64 "I64u"
 #define UINT16_MAX 0xFFFF
 #define UINT32_MAX 0xFFFFFFFF
 #define INT64_MAX 0x7FFFFFFFFFFFFFFF
@@ -107,6 +108,10 @@ typedef uint64_t U64;
 #define MOVE_ERROR	01
 
 #define MAX_BUF 256			/* max. length of a string */
+/* Max. length of one line of input. It must hold a UCI "position" command
+   that lists every move of the longest possible game, because UCI GUIs
+   resend the complete move list before every search.  */
+#define MAX_INPUT_BUF 8192
 #define MAX_NMOVES_PER_GAME 1024	/* max. num. of halfmoves per game */
 
 #define VAL_NONE -32767

@@ -29,6 +29,7 @@
 #include "notation.h"
 #include "search.h"
 #include "input.h"
+#include "uci.h"
 #include "game.h"
 
 #define GAME_LOG "gamelog.txt"
@@ -152,8 +153,15 @@ cpu_move(Chess *chess)
 	timer = get_ms();
 	
 	chess->sd.cmd_type = CMDT_CONTINUE;
-	if (settings.book_type != BOOK_OFF)
-		move = get_book_move(board, chess->show_pv, chess->book);
+	/* An infinite search is analysis, so the book must not be used, and
+	   a book move could fall outside a "go searchmoves" restriction.
+	   In UCI mode the available book moves mustn't be printed either.  */
+	if (settings.book_type != BOOK_OFF && !chess->infinite_search
+	&&  chess->searchmoves.nmoves == 0) {
+		bool show_book;
+		show_book = chess->show_pv && chess->protocol != PROTO_UCI;
+		move = get_book_move(board, show_book, chess->book);
+	}
 	if (move != NULLMOVE) {
 		book_used = true;
 		chess->in_book = true;
@@ -171,7 +179,9 @@ cpu_move(Chess *chess)
 	ASSERT(1, move != NULLMOVE);
 	move_to_str(move, str_move);
 
-	if (SIGN(board->color)*score < VAL_RESIGN) {
+	/* A UCI engine never resigns; the GUI decides the game's result.  */
+	if (chess->protocol != PROTO_UCI
+	&&  SIGN(board->color)*score < VAL_RESIGN) {
 		if (board->color == WHITE)
 			printf("0-1 {White resigns}\n");
 		else
@@ -180,9 +190,39 @@ cpu_move(Chess *chess)
 		return;
 	}
 
+	if (chess->protocol == PROTO_UCI) {
+		bool send_move = true;
+
+		/* The best move of an infinite search must not be sent
+		   before the GUI asks for it.  */
+		if (chess->infinite_search) {
+			if (chess->sd.cmd_type == CMDT_CONTINUE)
+				send_move = uci_wait_for_stop(chess);
+			else
+				send_move = uci_queued_cmd_wants_bestmove();
+		}
+		if (send_move)
+			printf("bestmove %s\n", str_move);
+		/* A book move has no search behind it, so there are no fresh
+		   statistics to print. The score is converted back to the
+		   side to move's point of view, which is what all the other
+		   UCI score output uses.  */
+		if (chess->debug && !book_used && chess->sd.nnodes > 0) {
+			print_search_data(&chess->sd, (int)timer,
+			                  "info string ");
+			printf("info string Score: %d\n",
+			       SIGN(board->color)*score);
+		}
+		/* In UCI mode the GUI owns the game: the board must stay at
+		   the position set by the last "position" command, and a new
+		   search starts only with a "go" command.  */
+		chess->cpu_color = COLOR_NONE;
+		return;
+	}
+
 	printf("move %s\n", str_move);
 	if (chess->debug && chess->sd.nnodes > 0) {
-		print_search_data(&chess->sd, (int)timer);
+		print_search_data(&chess->sd, (int)timer, "");
 		printf("Score: %d\n", score);
 	}
 
@@ -340,8 +380,12 @@ new_game(Chess *chess, const char *fen, int new_cpu_color)
 	chess->in_book = false;
 	chess->cpu_color = new_cpu_color;
 
-	/* Delete the (possibly) existing GAME_LOG file.  */
-	if (remove(GAME_LOG) && errno != ENOENT)
-		my_perror("Can't delete file %s", GAME_LOG);
+	/* Delete the (possibly) existing GAME_LOG file. UCI mode never
+	   writes the game log, so it mustn't delete one either: the file
+	   could belong to something else entirely.  */
+	if (chess->protocol != PROTO_UCI) {
+		if (remove(GAME_LOG) && errno != ENOENT)
+			my_perror("Can't delete file %s", GAME_LOG);
+	}
 }
 
