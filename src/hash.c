@@ -88,12 +88,36 @@ set_hash_size(int hsize)
 	settings.hash_size = (hsize * 0x100000) / sizeof(Hash);
 }
 
-/* Initialize the hash table.  */
+/* Resize and clear the hash table.
+   Returns false if <mbytes> is outside the valid range.  */
+bool
+resize_hash_table_mb(int mbytes)
+{
+	if (mbytes < HASH_SIZE_MIN_MB || mbytes > HASH_SIZE_MAX_MB)
+		return false;
+	set_hash_size(mbytes);
+	init_hash();
+	return true;
+}
+
+/* The current hash table size in megabytes.  */
+unsigned long
+get_hash_size_mb(void)
+{
+	return (unsigned long)((sizeof(Hash) * settings.hash_size)
+	                       / 0x100000);
+}
+
+/* Initialize the hash table.
+   Any previously allocated table is released first, so this can also be
+   used to clear the table (eg. for the UCI "Clear Hash" button).  */
 void
 init_hash(void)
 {
 	ASSERT(1, settings.hash_size > 0);
-	
+
+	if (hash_table != NULL)
+		free(hash_table);
 	hash_table = calloc(settings.hash_size, sizeof(Hash));
 	clear_hash_table();
 }

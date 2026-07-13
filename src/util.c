@@ -61,7 +61,7 @@ Settings settings = {
 
 static int rand_seed = 1;	/* seed for the random number generator */
 
-char last_input[MAX_BUF] = "";	/* last input in stdin */
+char last_input[MAX_INPUT_BUF] = "";	/* last input in stdin */
 int ninput = 0;			/* num. of commands in queue */
 
 /* An array of bitmasks where each mask has one bit set.  */
@@ -76,6 +76,25 @@ const U64 bit64[64] =
 	B64(48), B64(49), B64(50), B64(51), B64(52), B64(53), B64(54), B64(55),
 	B64(56), B64(57), B64(58), B64(59), B64(60), B64(61), B64(62), B64(63)
 };
+
+/* Case-insensitive string comparison with the same semantics as
+   strcmp().  */
+int
+strcmp_nocase(const char *s1, const char *s2)
+{
+	int c1;
+	int c2;
+
+	ASSERT(2, s1 != NULL);
+	ASSERT(2, s2 != NULL);
+
+	do {
+		c1 = tolower((unsigned char)*s1++);
+		c2 = tolower((unsigned char)*s2++);
+	} while (c1 != 0 && c1 == c2);
+
+	return c1 - c2;
+}
 
 /* Clears a stream until the next line break or EOF.  */
 void
@@ -115,11 +134,13 @@ fgetline(char *line, int lim, FILE *fp)
 		line[i] = (char)c;
 	}
 
-	line[++i] = '\0';
+	line[i] = '\0';
 	fprintf(stderr, "fgetline: Input too long (max %d characters)\n", lim);
 	clear_buf(fp);
 
-	return EOF;
+	/* A too-long line mustn't look like the end of the input, or one
+	   oversized command would shut the whole engine down.  */
+	return 0;
 }
 
 /* Print a custom error message.  */

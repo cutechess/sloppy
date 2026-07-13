@@ -31,12 +31,49 @@ COMPILING
 
 INTERFACE, COMMAND LINE OPTIONS
 
-   Sloppy uses the Xboard chess engine communication protocol. So if you want to
-   use a GUI (you probably do), make sure it implements Xboard protocol 2. If
-   it only supports UCI, you can still use Sloppy with the wb2uci adapter:
-   http://home.online.no/~malin/sjakk/Wb2Uci/
+   Sloppy speaks both of the common chess engine communication protocols:
+   the Xboard/Winboard protocol (version 2) and UCI. A GUI needs no special
+   setup: the protocol is chosen by the first command the GUI sends, so
+   configuring Sloppy as either an Xboard engine or a UCI engine just works.
 
    Sloppy doesn't accept any command line options, see configuration below.
+
+
+UCI NOTES
+
+   The UCI options Sloppy advertises are Hash, Clear Hash, OwnBook,
+   EgbbPath, EgbbLoadType, EgbbCache and Egbb5Men. Their defaults are taken
+   from the configuration file, so "setoption" is only needed to override
+   it per session.
+
+   Sloppy does not ponder, and therefore does not advertise the Ponder
+   option. Some inputs are still accepted beyond what Sloppy advertises,
+   so that a GUI which sends them anyway gets protocol-correct behavior
+   instead of a desynchronized game:
+
+   - "ucinewgame" does not clear the hash table. Sloppy has never cleared
+     it between games (the Xboard "new" command doesn't either), and UCI
+     mode deliberately keeps the engine's original behavior so that both
+     protocols play identically. A GUI or user who wants a cold start can
+     send "setoption name Clear Hash".
+   - UCI mode never writes the game log files. "gamelog.txt" and
+     "games.pgn" are produced only by the Xboard protocol's game
+     lifecycle (and only with logfile = on): UCI has no "result" command,
+     so games can't be logged from it, and only the error log
+     ("errlog.txt") can be written in UCI mode. "ucinewgame" therefore
+     also refuses to delete an existing "gamelog.txt". Note that the
+     engine still deletes that file from its working directory once at
+     startup, before any protocol has been chosen.
+   - "go ponder" is treated like "go infinite": the best move is held back
+     until "ponderhit" or "stop" arrives, and an "info string" notice says
+     so. Sloppy does not actually think on the opponent's time.
+   - "go mate N" runs a normal search instead of a mate search, and says so.
+   - "register" is answered with "registration ok"; Sloppy never asks for
+     registration.
+   - The option value "<empty>" (a convention of some GUIs) clears EgbbPath.
+   - A "go" without any parameters searches until told to stop.
+   - Zero or negative clocks make Sloppy move as fast as it can.
+   - Unknown commands are ignored, with an "info string" notice.
 
 
 CONFIGURATION
@@ -70,5 +107,6 @@ ASCII INTERFACE COMMANDS
    testpos [sec] [fen]   runs a test position (eg. WAC, WCSAC)
    testsee [fen] [move]  tests the Static Exchange Evaluator
    testsuite [sec] [f]   runs a list of test positions (in file [f])
+   uci                   switches to UCI mode
    xboard                switches to Xboard/Winboard mode
 

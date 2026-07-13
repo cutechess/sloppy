@@ -36,11 +36,13 @@
 #include "perft.h"
 #include "bench.h"
 #include "xboard.h"
+#include "uci.h"
 
 
 typedef enum _SloppyId
 {
 	SLID_XBOARD,
+	SLID_UCI,
 	SLID_QUIT,
 	SLID_DEBUG,
 	SLID_PRINTBOARD,
@@ -70,6 +72,7 @@ typedef struct _SloppyCmd
 static SloppyCmd slcmds[] =
 {
 	{ SLID_XBOARD, "xboard", CMDT_EXEC_AND_CONTINUE },
+	{ SLID_UCI, "uci", CMDT_EXEC_AND_CONTINUE },
 	{ SLID_QUIT, "quit", CMDT_CANCEL },
 	{ SLID_DEBUG, "debug", CMDT_EXEC_AND_CONTINUE },
 	{ SLID_PRINTBOARD, "printboard", CMDT_EXEC_AND_CONTINUE },
@@ -95,9 +98,9 @@ static SloppyCmd
 	int i;
 	char *cmd;
 	char *param;
-	char line[MAX_BUF];
+	char line[MAX_INPUT_BUF];
 	
-	strlcpy(line, last_input, MAX_BUF);
+	strlcpy(line, last_input, MAX_INPUT_BUF);
 	cmd = strtok_r(line, " ", &param);
 	
 	for (i = 0; i < SLID_NONE; i++) {
@@ -146,6 +149,7 @@ print_help(void)
 	       "testpos [time] [fen] - runs a test position (eg. WAC, WCSAC)\n"
 	       "testsee [fen] [move] - tests the Static Exchange Evaluator\n"
 	       "testsuite [time] [file] - runs a list of test positions\n"
+	       "uci - switches to UCI mode\n"
 	       "xboard - switches to Xboard/Winboard mode\n\n");
 }
 
@@ -269,7 +273,7 @@ input_testpos(char **param, bool show_pv)
 		printf("Test cancelled by user\n");
 		return;
 	}
-	print_search_data(&tmp_chess.sd, (int)(get_ms() - timer));
+	print_search_data(&tmp_chess.sd, (int)(get_ms() - timer), "");
 }
 
 static void
@@ -312,7 +316,7 @@ int
 read_input(Chess *chess)
 {
 	Board *board;
-	char line[MAX_BUF];
+	char line[MAX_INPUT_BUF];
 	char *cmd;
 	char *param = NULL;
 	SloppyCmd *slcmd;
@@ -331,15 +335,17 @@ read_input(Chess *chess)
 				printf("Black(%d): ", nmoves);
 		}		
 		/* Read input.  */
-		if ((ret = fgetline(last_input, MAX_BUF, stdin)) < 1)
+		if ((ret = fgetline(last_input, MAX_INPUT_BUF, stdin)) < 1)
 			return ret;
 		ninput++;
 	}
 	ninput--;
-	strlcpy(line, last_input, MAX_BUF);
+	strlcpy(line, last_input, MAX_INPUT_BUF);
 
 	if (chess->protocol == PROTO_XBOARD || chess->analyze)
 		return read_xb_input(chess);
+	if (chess->protocol == PROTO_UCI)
+		return read_uci_input(chess);
 
 	cmd = strtok_r(line, " ", &param);
 	slcmd = get_slcmd();
@@ -352,6 +358,9 @@ read_input(Chess *chess)
 	case SLID_XBOARD:
 		chess->protocol = PROTO_XBOARD;
 		printf("\n");
+		break;
+	case SLID_UCI:
+		enter_uci_mode(chess);
 		break;
 	case SLID_QUIT:
 		return -1;
@@ -433,12 +442,14 @@ get_cmd_type(Chess *chess)
 	ASSERT(1, chess != NULL);
 
 	return_val = 0;
-	if (fgetline(last_input, MAX_BUF, stdin) < 1)
+	if (fgetline(last_input, MAX_INPUT_BUF, stdin) < 1)
 		return CMDT_NONE;
 	ninput++;
 
 	if (chess->protocol == PROTO_XBOARD)
 		return_val = get_xboard_cmd_type(chess);
+	else if (chess->protocol == PROTO_UCI)
+		return_val = get_uci_cmd_type(chess);
 	else if (chess->protocol == PROTO_NONE)
 		return_val = get_sloppy_cmd_type(chess);
 

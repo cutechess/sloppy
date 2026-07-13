@@ -139,6 +139,11 @@ extern int pop_lsb(U64 *b);
 /* Returns the number of "one" bits in a 64-bit word.  */
 extern int popcount(U64 b);
 
+/* Case-insensitive string comparison with the same semantics as
+   strcmp(). There is no standard portable version: strcasecmp() is
+   POSIX-only and MSVC has only _stricmp().  */
+extern int strcmp_nocase(const char *s1, const char *s2);
+
 /* strlcpy() and strlcat() are native on BSD-derived systems (including macOS),
    but missing on Windows and on glibc before 2.38, where we supply our own.
    Note that __GNUC__ alone is too broad: Clang defines it on macOS too.  */

@@ -11,7 +11,7 @@ DEFS = -DDEBUG_LEVEL=$(DEBUGLEVEL) -DUSE_THREADS
 
 OBJS = avltree.o bench.o chess.o debug.o egbb.o eval.o hash.o main.o \
        notation.o game.o input.o makemove.o pgn.o book.o magicmoves.o \
-       movegen.o perft.o search.o thread.o util.o xboard.o
+       movegen.o perft.o search.o thread.o uci.o util.o xboard.o
 
 .c.o:
 	$(CC) -std=gnu99 -c $(CFLAGS) $< $(DEFS)

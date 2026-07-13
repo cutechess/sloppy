@@ -62,6 +62,79 @@ static LIB_HND egbb_hnd = NULL;
 static bool bitbases_loaded = false;
 
 
+/* Store a normalized copy of <path> (with a trailing slash) as the
+   endgame bitbase path. An empty path clears the setting.  */
+void
+set_egbb_path(const char *path)
+{
+	size_t len;
+
+	ASSERT(1, path != NULL);
+
+	len = strlen(path);
+	if (len == 0) {
+		settings.egbb_path[0] = '\0';
+		return;
+	}
+	strlcpy(settings.egbb_path, path, MAX_BUF);
+	if (path[len - 1] != '/')
+		strlcat(settings.egbb_path, "/", MAX_BUF);
+}
+
+/* Store the egbb path, enable a default load type if the bitbases were
+   disabled, and load the bitbases.  */
+void
+activate_egbb_path(const char *path)
+{
+	ASSERT(1, path != NULL);
+
+	set_egbb_path(path);
+	if (settings.egbb_path[0] == '\0')
+		return;
+	if (settings.egbb_load_type == EGBB_OFF)
+		settings.egbb_load_type = LOAD_4MEN;
+	load_bitbases();
+}
+
+/* Convert an egbb load type string into an EgbbLoadType value.
+   Returns -1 if the string isn't a valid load type.  */
+int
+parse_egbb_load_type(const char *str)
+{
+	ASSERT(1, str != NULL);
+
+	if (!strcmp_nocase(str, "4men"))
+		return LOAD_4MEN;
+	if (!strcmp_nocase(str, "5men"))
+		return LOAD_5MEN;
+	if (!strcmp_nocase(str, "smart"))
+		return SMART_LOAD;
+	if (!strcmp_nocase(str, "none"))
+		return LOAD_NONE;
+	if (!strcmp_nocase(str, "off"))
+		return EGBB_OFF;
+	return -1;
+}
+
+/* Convert an EgbbLoadType value into its string form.  */
+const char
+*egbb_load_type_str(EgbbLoadType load_type)
+{
+	switch (load_type) {
+	case LOAD_4MEN:
+		return "4men";
+	case LOAD_5MEN:
+		return "5men";
+	case SMART_LOAD:
+		return "smart";
+	case LOAD_NONE:
+		return "none";
+	case EGBB_OFF:
+	default:
+		return "off";
+	}
+}
+
 /* Load the dll and get the address of the load and probe functions.  */
 bool
 load_bitbases(void)
